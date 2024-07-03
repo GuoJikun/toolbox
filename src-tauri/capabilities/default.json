@@ -7,11 +7,15 @@
     "path:default",
     "event:default",
     "window:default",
+    "window:allow-show",
     "app:default",
     "image:default",
     "resources:default",
     "menu:default",
     "tray:default",
-    "shell:allow-open"
+    "shell:allow-open",
+    "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister"
   ]
 }
