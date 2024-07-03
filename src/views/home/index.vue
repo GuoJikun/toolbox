@@ -2,7 +2,5 @@
 
 </script>
 <template>
-    <div class="home">
-        Home Index
-    </div>
+    <div class="home"> Home Index </div>
 </template>
