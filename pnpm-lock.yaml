@@ -8,6 +8,9 @@ dependencies:
   '@tauri-apps/api':
     specifier: '>=2.0.0-beta.0'
     version: 2.0.0-beta.14
+  '@tauri-apps/plugin-global-shortcut':
+    specifier: 2.0.0-beta.6
+    version: 2.0.0-beta.6
   '@tauri-apps/plugin-shell':
     specifier: '>=2.0.0-beta.0'
     version: 2.0.0-beta.6
@@ -514,6 +517,12 @@ packages:
       '@tauri-apps/cli-win32-ia32-msvc': 2.0.0-beta.21
       '@tauri-apps/cli-win32-x64-msvc': 2.0.0-beta.21
     dev: true
+
+  /@tauri-apps/plugin-global-shortcut@2.0.0-beta.6:
+    resolution: {integrity: sha512-hEW36RnbkjcQYQH88W8PHUSEnbZ8J2L+kAEfSyhb+NWOPzskiE6lDkjh9XurNZkqDR959Lgtm1MAinRCUYnUjA==}
+    dependencies:
+      '@tauri-apps/api': 2.0.0-beta.14
+    dev: false
 
   /@tauri-apps/plugin-shell@2.0.0-beta.6:
     resolution: {integrity: sha512-g3nM9cQQGl7Iv4MvyFuco/aPTiwOI/MixcoKso3VQIg5Aqd64NqR0r+GfsB0qx52txItqzSXwmeaj1eZjO9Q6Q==}
