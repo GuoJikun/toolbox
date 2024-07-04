@@ -2,6 +2,8 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import Router from "./router/index";
 
+import "@/assets/css/global.scss";
+
 import { registerShortcut, getWindow } from "@/utils/index";
 
 async function addShortcut() {

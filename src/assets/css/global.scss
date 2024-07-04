@@ -1,0 +1,21 @@
+@import "./reset.css";
+
+html,
+body {
+    color: var(--el-text-color-primary);
+    font-size: 14px;
+    font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+}
+
+html,
+body,
+p,
+div {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body * {
+    box-sizing: border-box;
+}
