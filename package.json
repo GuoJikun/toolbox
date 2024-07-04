@@ -22,5 +22,14 @@
     "typescript": "^5.2.2",
     "vite": "^5.3.1",
     "vue-tsc": "^2.0.22"
+  },
+  "volta": {
+    "node": "20.15.0",
+    "pnpm": "9.4.0"
+  },
+  "packageManager": "pnpm@9.4.0",
+  "engines": {
+    "node": "20.15.0",
+    "pnpm": "9.4.0"
   }
 }
