@@ -19,12 +19,14 @@
       {
         "title": "search",
         "width": 800, 
-        "height": 600,
+        "maxHeight": 600,
+        "minHeight": 100,
         "url": "/search",
         "label": "search",
         "visible": false,
-        "skipTaskbar": true,
-        "focus": true
+        "skipTaskbar": false,
+        "focus": true,
+        "decorations": false
       }
     ],
     "security": {
