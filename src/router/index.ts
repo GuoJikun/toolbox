@@ -9,21 +9,21 @@ import Search from "../views/search/index.vue";
 const routes: RouteRecordRaw[] = [
     {
         path: "/",
-        name: "root",
-        components: HomeLayout,
+        name: "homeLayout",
+        component: HomeLayout,
         redirect: "/home",
         children: [
             {
                 path: "/home",
                 name: "home",
-                components: Home
+                component: Home
             }
         ],
     },
     {
         path: "/search",
         name: "search",
-        components: Search
+        component: Search
         
     }
 ]

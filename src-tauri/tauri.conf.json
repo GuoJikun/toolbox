@@ -22,7 +22,6 @@
         "url": "/search",
         "label": "search",
         "visible": false
-        
       }
     ],
     "security": {
