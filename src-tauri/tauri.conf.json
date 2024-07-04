@@ -12,16 +12,19 @@
     "windows": [
       {
         "title": "vtools",
-        "width": 800,
-        "height": 600
+        "width": 1000,
+        "height": 600,
+        "center": true
       },
       {
         "title": "search",
-        "width": 800,
+        "width": 800, 
         "height": 600,
         "url": "/search",
         "label": "search",
-        "visible": false
+        "visible": false,
+        "skipTaskbar": true,
+        "focus": true
       }
     ],
     "security": {
