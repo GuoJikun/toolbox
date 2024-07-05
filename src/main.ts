@@ -2,6 +2,10 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import Router from "./router/index";
 
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
+
 import "@/assets/css/global.scss";
 
 import { registerShortcut, getWindow } from "@/utils/index";
@@ -19,4 +23,7 @@ async function addShortcut() {
 
 addShortcut()
 
-createApp(App).use(Router).mount("#app");
+const app = createApp(App)
+app.use(Router)
+app.use(ElementPlus,{locale: zhCn})
+app.mount("#app");
