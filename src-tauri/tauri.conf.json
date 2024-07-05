@@ -14,7 +14,8 @@
         "title": "vtools",
         "width": 1000,
         "height": 600,
-        "center": true
+        "center": true,
+        "decorations": false
       },
       {
         "title": "search",
