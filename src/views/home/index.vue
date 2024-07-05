@@ -9,6 +9,7 @@ const handlerInstallSuccess = (path: string) => {
   <div class="home">
     <h1>Home Index</h1>
     <router-link to="/search">Search</router-link>
+    <router-link to="/setting">Setting</router-link>
     <div>
       <InstallPlugin tag="button" @confirm="handlerInstallSuccess">
         选择 目录
