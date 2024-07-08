@@ -1,35 +1,37 @@
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import HomeLayout from '../views/home/layout.vue'
 
-
-import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
-import HomeLayout from "../views/home/layout.vue";
-
-import Home from "../views/home/index.vue";
-import Search from "../views/search/index.vue";
+import Home from '../views/home/index.vue'
+import Search from '../views/search/index.vue'
 
 const routes: RouteRecordRaw[] = [
     {
-        path: "/",
-        name: "homeLayout",
+        path: '/',
+        name: 'homeLayout',
         component: HomeLayout,
-        redirect: "/home",
+        redirect: '/home',
         children: [
             {
-                path: "/home",
-                name: "home",
+                path: '/home',
+                name: 'home',
                 component: Home
             },
             {
-                path: "/setting",
-                name: "setting",
+                path: '/setting',
+                name: 'setting',
                 component: () => import('@/views/home/setting/index.vue')
+            },
+            {
+                path: '/plugins',
+                name: 'plugins',
+                component: () => import('@/views/home/plugins/index.vue')
             }
-        ],
+        ]
     },
     {
-        path: "/search",
-        name: "search",
+        path: '/search',
+        name: 'search',
         component: Search
-        
     }
 ]
 
