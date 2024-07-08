@@ -46,9 +46,9 @@ onMounted(() => {
 })
 </script>
 <template>
-    <div class="setting">
-        <div class="setting-header">
-            <div class="setting-haeder-back">
+    <div class="plugin">
+        <div class="plugin-header">
+            <div class="plugin-haeder-back">
                 <el-page-header @back="handleBack" content="插件">
                     <template #extra>
                         <div class="flex items-center">
@@ -57,9 +57,9 @@ onMounted(() => {
                     </template>
                 </el-page-header>
             </div>
-            <h1 class="setting-haeder-title">插件</h1>
-            <div>
-                <div v-for="plugin in plugins" :key="plugin.id">
+            <h1 class="plugin-haeder-title">插件</h1>
+            <div class="plugin-container">
+                <div v-for="plugin in plugins" :key="plugin.id" class="plugin-item">
                     <div>
                         <div></div>
                         <div>
@@ -74,12 +74,17 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.setting {
+.plugin {
     &-header {
         position: relative;
         &-back {
             position: absolute;
         }
+    }
+
+    &-item {
+        padding: 6px 12px;
+        font-size: 14px;
     }
 }
 </style>
