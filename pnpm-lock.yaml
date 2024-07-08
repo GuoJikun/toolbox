@@ -17,6 +17,9 @@ importers:
       '@tauri-apps/plugin-dialog':
         specifier: 2.0.0-beta.6
         version: 2.0.0-beta.6
+      '@tauri-apps/plugin-fs':
+        specifier: 2.0.0-beta.6
+        version: 2.0.0-beta.6
       '@tauri-apps/plugin-global-shortcut':
         specifier: 2.0.0-beta.6
         version: 2.0.0-beta.6
@@ -530,6 +533,9 @@ packages:
 
   '@tauri-apps/plugin-dialog@2.0.0-beta.6':
     resolution: {integrity: sha512-Rw8C8t/0y3QExEinp+cAOZi/BDt0c9jifv0bS3WDCwQt9ANdmfCWKamsIhqwemt3MjepkU2RV8bvphzoWlbOGw==}
+
+  '@tauri-apps/plugin-fs@2.0.0-beta.6':
+    resolution: {integrity: sha512-R7M5wggENzJhiA0HwP63AzdF6uzdXRYe0z+ETSue9gvJmqKtqVp+qx9JLsWSfwENHy8RDKmrnuDL18kx/Q2aFA==}
 
   '@tauri-apps/plugin-global-shortcut@2.0.0-beta.6':
     resolution: {integrity: sha512-hEW36RnbkjcQYQH88W8PHUSEnbZ8J2L+kAEfSyhb+NWOPzskiE6lDkjh9XurNZkqDR959Lgtm1MAinRCUYnUjA==}
@@ -1400,6 +1406,10 @@ snapshots:
       '@tauri-apps/cli-win32-x64-msvc': 2.0.0-beta.21
 
   '@tauri-apps/plugin-dialog@2.0.0-beta.6':
+    dependencies:
+      '@tauri-apps/api': 2.0.0-beta.14
+
+  '@tauri-apps/plugin-fs@2.0.0-beta.6':
     dependencies:
       '@tauri-apps/api': 2.0.0-beta.14
 
