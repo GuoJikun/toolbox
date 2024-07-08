@@ -13,7 +13,7 @@
     "window:allow-show",
     "window:allow-start-dragging",
     "window:allow-toggle-maximize",
-    "window:allow-maximize",
+    "window:allow-minimize",
     "window:allow-close",
     "app:default",
     "image:default",
