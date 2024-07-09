@@ -63,7 +63,7 @@ onMounted(() => {
                     <div>
                         <div></div>
                         <div>
-                            <p>{{ plugin.name }}-</p>
+                            <p>{{ plugin.name }}</p>
                             <p v-text="plugin.description"></p>
                         </div>
                     </div>

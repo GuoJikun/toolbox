@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import Router from './router/index'
+import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
@@ -23,7 +25,11 @@ async function addShortcut() {
 addShortcut()
 initPluginDir()
 
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
+
 const app = createApp(App)
 app.use(Router)
+app.use(pinia)
 app.use(ElementPlus, { locale: zhCn })
 app.mount('#app')
