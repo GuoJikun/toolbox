@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
-import { execBinaryPlugin, getPluginPath, formatPath, getPluginOfPrefix } from '@/utils/index'
-import { PluginConfig } from '@/utils/typescript'
+import { formatPath } from '@/utils/index'
+import { execBinaryPlugin, getPluginPath, getPluginOfPrefix } from '@/utils/plugin'
 import { useIndexStore } from '@/store'
 
 const mainStore = useIndexStore()

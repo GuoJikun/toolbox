@@ -3,7 +3,8 @@ import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { useIndexStore } from './store'
 import { readDir, exists, readTextFile } from '@tauri-apps/plugin-fs'
-import { getPluginsPath, getPluginPath, formatPath } from '@/utils'
+import { formatPath } from '@/utils/index'
+import { getPluginsPath, getPluginPath } from '@/utils/plugin'
 import { PluginConfig } from './utils/typescript'
 
 const getPlugins = async () => {

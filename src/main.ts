@@ -10,7 +10,8 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 
 import '@/assets/css/global.scss'
 
-import { registerShortcut, getWindow, initPluginDir } from '@/utils/index'
+import { registerShortcut, getWindow } from '@/utils/index'
+import { initPluginDir } from '@/utils/plugin'
 
 async function addShortcut() {
     const shortcut = 'Alt+Space'
