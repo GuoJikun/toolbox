@@ -1,8 +1,12 @@
+import type { PluginConfig } from '@/utils/typescript'
+
 import { Window, type WindowLabel } from '@tauri-apps/api/window'
 import { register, isRegistered, unregister } from '@tauri-apps/plugin-global-shortcut'
 
 import { exists, mkdir } from '@tauri-apps/plugin-fs'
 import { homeDir, join } from '@tauri-apps/api/path'
+
+import { invoke } from '@tauri-apps/api/core'
 
 export const getWindow = (label: WindowLabel) => {
     const windows = Window.getAll()
@@ -65,4 +69,35 @@ export const initPluginDir = async () => {
  */
 export const formatPath = async (...path: string[]) => {
     return await join(...path)
+}
+
+/**
+ * 执行二进制插件
+ * @param path 二进制文件路径
+ * @param args 参数
+ */
+export const execBinaryPlugin = async (executablePath: string, args: string[] = []) => {
+    return new Promise((resolve, reject) => {
+        invoke('run_external_program', { executablePath, args })
+            .then((result) => {
+                resolve(result)
+            })
+            .catch((err) => {
+                reject(err)
+            })
+    })
+}
+
+export const execScriptPlugin = async (path: string, env: string) => {}
+
+export const execModulePlugin = async (path: string, args: string[]) => {}
+
+/**
+ * 根据唯一标识获取插件
+ * @param prefix 执行程序的唯一标识
+ * @param pluginList 插件列表
+ * @returns
+ */
+export const getPluginOfPrefix = (prefix: string, pluginList: Array<PluginConfig> = []) => {
+    return pluginList.find((plugin) => plugin.prefix === prefix)
 }

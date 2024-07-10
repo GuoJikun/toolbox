@@ -1,48 +1,16 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { readDir, exists, readTextFile } from '@tauri-apps/plugin-fs'
-import { getPluginsPath, getPluginPath, formatPath } from '@/utils'
-import { ref, onMounted } from 'vue'
+import { useIndexStore } from '@/store'
+import { computed } from 'vue'
 
 const router = useRouter()
 const handleBack = () => {
     router.push('/')
 }
-interface Plugin {
-    logo?: string | URL
-    id: string
-    name: string
-    description: string
-    version: string
-}
-const plugins = ref<Plugin[]>([])
-const getPlugins = async () => {
-    plugins.value = []
-    const pluginsPath = await getPluginsPath()
-    if (!(await exists(pluginsPath))) {
-        plugins.value = []
-        return []
-    }
-    const dirs = await readDir(pluginsPath)
-    dirs.forEach(async (item) => {
-        if (item.isDirectory) {
-            const pluginPath = await getPluginPath(item.name)
-            const configPath = await formatPath(pluginPath, '/config.json')
-            const configObjString = await readTextFile(configPath)
-            const config = JSON.parse(configObjString)
 
-            plugins.value.push({
-                id: config.id,
-                name: config.name,
-                description: config.description,
-                version: config.version
-            })
-        }
-    })
-}
-
-onMounted(() => {
-    getPlugins()
+const mainStore = useIndexStore()
+const plugins = computed(() => {
+    return mainStore.plugins
 })
 </script>
 <template>

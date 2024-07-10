@@ -52,8 +52,6 @@ interface PluginScriptConfig {
     prefix?: string
 }
 
-export type PluginConfig = PluginBinaryConfig | PluginModuleConfig | PluginScriptConfig | Record<string, unknown>
-
-export interface PluginOption extends PluginBinaryConfig, PluginModuleConfig, PluginScriptConfig {
+export interface PluginConfig extends PluginBinaryConfig, PluginModuleConfig, PluginScriptConfig {
     type: 'script' | 'binary' | 'module'
 }

@@ -1,19 +1,43 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
+import { execBinaryPlugin, getPluginPath, formatPath, getPluginOfPrefix } from '@/utils/index'
+import { PluginConfig } from '@/utils/typescript'
+import { useIndexStore } from '@/store'
+
+const mainStore = useIndexStore()
 
 const title = 'Search'
 
-const parseInputContent = (content: string) => {
-    console.log(content)
+const resultList = ref<Array<Record<string, unknown>>>([])
+
+const parseInputContent = async (content: string) => {
     const input = content.trim()
     if (input === '') {
         return
     }
-    console.log(input)
     const args = input.split(' ')
-    if (args.length > 0) {
-        const command = args[0]
-        console.log(command)
+    console.log('args', args)
+    if (args.length > 1) {
+        const [command, val] = args
+
+        const pluginConfig = getPluginOfPrefix(command, mainStore.plugins)
+        if (!pluginConfig) {
+            resultList.value.push({
+                command,
+                val,
+                value: '未找到插件'
+            })
+            return
+        }
+        const pluginPath = await getPluginPath(pluginConfig?.id)
+        const binaryPath = await formatPath(pluginPath, 'toolbox-plugin-calc')
+        const result = await execBinaryPlugin(binaryPath, [val])
+        resultList.value.push({
+            command,
+            val,
+            value: result
+        })
         return
     }
 }
@@ -28,6 +52,7 @@ const handleCompositionEnd = (e: Event) => {
     parseInputContent(target.value)
 }
 const handleInput = useDebounceFn((e: Event) => {
+    resultList.value = []
     const target = e.target as HTMLInputElement
     if (compositioned) {
         return
@@ -46,6 +71,13 @@ const handleInput = useDebounceFn((e: Event) => {
                 @compositionstart="handleCompositionStart"
                 @compositionend="handleCompositionEnd"
             />
+        </div>
+        <div class="result">
+            <div v-for="(item, index) in resultList" :key="index" class="result-item">
+                <p>{{ item.command }}</p>
+                <p>{{ item.val }}</p>
+                <p>{{ item.value }}</p>
+            </div>
         </div>
     </div>
 </template>
@@ -69,6 +101,14 @@ const handleInput = useDebounceFn((e: Event) => {
         font-size: 16px;
         color: var(--el-text-color-primary);
         box-shadow: inset 0 0 10px 0 rgba(51, 51, 51, 0.14);
+    }
+}
+
+.result {
+    margin-top: 12px;
+    &-item {
+        padding: 6px 12px;
+        font-size: 14px;
     }
 }
 </style>
