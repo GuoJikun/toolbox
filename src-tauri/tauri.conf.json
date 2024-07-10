@@ -1,7 +1,7 @@
 {
-  "productName": "vtools",
+  "productName": "toolbox",
   "version": "0.1.0",
-  "identifier": "dev.jikun.vtools",
+  "identifier": "dev.jikun.toolbox",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "vtools",
+        "title": "toolbox",
         "width": 1000,
         "height": 600,
         "minWidth": 600,
