@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import { formatPath } from '@/utils/index'
-import { execBinaryPlugin, getPluginPath, getPluginOfPrefix } from '@/utils/plugin'
+import { execBinaryPlugin, getPluginPath, getPluginOfPrefix, execScriptPlugin } from '@/utils/plugin'
 import { useIndexStore } from '@/store'
 
 const mainStore = useIndexStore()
@@ -19,26 +19,67 @@ const parseInputContent = async (content: string) => {
     const args = input.split(' ')
     console.log('args', args)
     if (args.length > 1) {
-        const [command, val] = args
+        const [command, ...val] = args
 
         const pluginConfig = getPluginOfPrefix(command, mainStore.plugins)
         if (!pluginConfig) {
             resultList.value.push({
+                type: 'error',
                 command,
                 val,
                 value: '未找到插件'
             })
             return
         }
-        const pluginPath = await getPluginPath(pluginConfig?.id)
-        const binaryPath = await formatPath(pluginPath, 'toolbox-plugin-calc')
-        const result = await execBinaryPlugin(binaryPath, [val])
-        resultList.value.push({
-            command,
-            val,
-            value: result
-        })
+        const pluginType = pluginConfig.type
+        if (pluginType === 'binary') {
+            const pluginPath = await getPluginPath(pluginConfig?.id)
+            const binaryPath = await formatPath(pluginPath, 'toolbox-plugin-calc')
+            const result = await execBinaryPlugin(binaryPath, val)
+            resultList.value.push({
+                type: 'result',
+                command,
+                val,
+                value: result
+            })
+        } else if (pluginType === 'script') {
+            const { scriptEnv, main } = pluginConfig
+            const pluginPath = await getPluginPath(pluginConfig?.id)
+            const scriptPath = await formatPath(pluginPath, `/${main}`)
+            console.log('scriptPath', scriptPath)
+            const result = await execScriptPlugin(scriptEnv, scriptPath, val || [])
+            console.log('result', result)
+            resultList.value.push({
+                type: 'result',
+                command,
+                val,
+                value: result
+            })
+        }
+
         return
+    } else {
+        console.log('插件类型是 Module')
+        resultList.value = mainStore.plugins
+            .filter((item) => {
+                if (item.type !== 'module') {
+                    return false
+                }
+                if (item.keywords?.some((c) => c.includes(input)) || item?.name.includes(input)) {
+                    console.log('condition', true)
+                    return true
+                }
+                return false
+            })
+            .map((item) => {
+                console.log('item', 1)
+                return {
+                    type: 'module',
+                    command: '',
+                    val: item.main,
+                    value: item.description
+                }
+            })
     }
 }
 

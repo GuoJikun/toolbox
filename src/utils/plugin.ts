@@ -1,4 +1,4 @@
-import type { PluginConfig } from '@/utils/typescript'
+import type { PluginConfig, ScriptEnv } from '@/utils/typescript'
 import { invoke } from '@tauri-apps/api/core'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { exists, mkdir } from '@tauri-apps/plugin-fs'
@@ -40,7 +40,33 @@ export const execBinaryPlugin = async (executablePath: string, args: string[] = 
     })
 }
 
-export const execScriptPlugin = async (path: string, env: string) => {}
+export const execScriptPlugin = async (env: ScriptEnv, path: string, args: string[] = []) => {
+    let fn = ''
+    switch (env) {
+        case 'nodejs':
+            fn = 'run_node_script'
+            break
+        case 'php':
+            fn = 'run_php_script'
+            break
+        case 'python':
+            fn = 'run_python_script'
+            break
+        default:
+            fn = 'run_node_script'
+            break
+    }
+
+    return new Promise((resolve, reject) => {
+        invoke(fn, { script: path, args })
+            .then((result) => {
+                resolve(result)
+            })
+            .catch((err) => {
+                reject(err)
+            })
+    })
+}
 
 export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) => {
     const webview = new WebviewWindow(`toolbox-plugin-${pluginConfig.id}`, {
