@@ -37,11 +37,12 @@ interface PluginModuleConfig {
     shortcut?: string
 }
 
+export type ScriptEnv = 'nodejs' | 'php' | 'python'
 interface PluginScriptConfig {
     id: string
     name: string
     main: string
-    scriptEnv: string
+    scriptEnv: ScriptEnv
     version: string
     description: string
     logo?: string
