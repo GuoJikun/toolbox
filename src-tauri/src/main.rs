@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::process::Command;
+mod scripts;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -24,7 +25,12 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![run_external_program])
+        .invoke_handler(tauri::generate_handler![
+            run_external_program,
+            scripts::run_node_script,
+            scripts::run_php_script,
+            scripts::run_python_script
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
