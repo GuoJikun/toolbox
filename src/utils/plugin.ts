@@ -1,8 +1,10 @@
 import type { PluginConfig, ScriptEnv } from '@/utils/typescript'
 import { invoke } from '@tauri-apps/api/core'
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { Window } from '@tauri-apps/api/window'
+import { Webview, type WebviewOptions } from '@tauri-apps/api/webview'
 import { exists, mkdir } from '@tauri-apps/plugin-fs'
 import { homeDir, join } from '@tauri-apps/api/path'
+import { getWindow } from './window'
 
 /**
  * 获取插件根目录
@@ -69,11 +71,38 @@ export const execScriptPlugin = async (env: ScriptEnv, path: string, args: strin
 }
 
 export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) => {
-    const webview = new WebviewWindow(`toolbox-plugin-${pluginConfig.id}`, {
-        url: url
+    const windowLabel = `toolbox-plugin-window-${pluginConfig.id}`
+    let currentWindow = getWindow(windowLabel)
+    if (!currentWindow) {
+        currentWindow = new Window(windowLabel, {
+            center: true,
+            width: 1000,
+            height: 600
+        })
+    }
+    currentWindow.listen('tauri://window-created', () => {
+        console.log('tauri://window-created')
     })
-    console.log('webview', webview)
-    webview.show()
+    const webviewLabel = `toolbox-plugin-webview-${pluginConfig.id}`
+    const webviewOption: WebviewOptions = {
+        url: url,
+        width: 1000,
+        height: 600,
+        x: 0,
+        y: 0
+    }
+    const webview = new Webview(currentWindow, webviewLabel, webviewOption)
+
+    webview.listen('tauri://webview-created', () => {
+        console.log('webview-created')
+    })
+    webview.once('tauri://error', function (e) {
+        // an error happened creating the webview
+        console.log('error', e)
+    })
+
+    console.log('execModulePlugin', webview)
+    currentWindow.show()
 }
 
 /**

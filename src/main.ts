@@ -15,10 +15,17 @@ import { initPluginDir } from '@/utils/plugin'
 
 async function addShortcut() {
     const shortcut = 'Alt+Space'
-    registerShortcut(shortcut, () => {
+    registerShortcut(shortcut, async () => {
         console.log('Shortcut triggered')
         const label = getWindow('search')
         console.log(label)
+        if (label) {
+            if (await label.isVisible()) {
+                label.show()
+            } else {
+                label.setFocus()
+            }
+        }
         label?.show()
     })
 }

@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
 import { formatPath } from '@/utils/index'
-import { execBinaryPlugin, getPluginPath, getPluginOfPrefix, execScriptPlugin } from '@/utils/plugin'
+import { execBinaryPlugin, getPluginPath, getPluginOfPrefix, execScriptPlugin, execModulePlugin } from '@/utils/plugin'
 import { useIndexStore } from '@/store'
+
+import Search from './components/search.vue'
+import Result from './components/result.vue'
 
 const mainStore = useIndexStore()
 
 const title = 'Search'
 
+const keywords = ref<string>('')
 const resultList = ref<Array<Record<string, unknown>>>([])
 
 const parseInputContent = async (content: string) => {
+    resultList.value = []
     const input = content.trim()
     if (input === '') {
         return
@@ -40,20 +44,20 @@ const parseInputContent = async (content: string) => {
                 type: 'result',
                 command,
                 val,
-                value: result
+                value: result,
+                raw: pluginConfig
             })
         } else if (pluginType === 'script') {
             const { scriptEnv, main } = pluginConfig
             const pluginPath = await getPluginPath(pluginConfig?.id)
             const scriptPath = await formatPath(pluginPath, `/${main}`)
-            console.log('scriptPath', scriptPath)
             const result = await execScriptPlugin(scriptEnv, scriptPath, val || [])
-            console.log('result', result)
             resultList.value.push({
                 type: 'result',
                 command,
                 val,
-                value: result
+                value: result,
+                raw: pluginConfig
             })
         }
 
@@ -66,7 +70,6 @@ const parseInputContent = async (content: string) => {
                     return false
                 }
                 if (item.keywords?.some((c) => c.includes(input)) || item?.name.includes(input)) {
-                    console.log('condition', true)
                     return true
                 }
                 return false
@@ -77,49 +80,31 @@ const parseInputContent = async (content: string) => {
                     type: 'module',
                     command: '',
                     val: item.main,
-                    value: item.description
+                    value: item.description,
+                    raw: item
                 }
             })
     }
 }
 
-let compositioned = false
-const handleCompositionStart = () => {
-    compositioned = true
-}
-const handleCompositionEnd = (e: Event) => {
-    compositioned = false
-    const target = e.target as HTMLInputElement
-    parseInputContent(target.value)
-}
-const handleInput = useDebounceFn((e: Event) => {
-    resultList.value = []
-    const target = e.target as HTMLInputElement
-    if (compositioned) {
-        return
+const resultClick = async (item: any) => {
+    console.log('item', item)
+    if (item.type === 'module') {
+        const pluginConfig = item.raw
+        const { main } = pluginConfig
+        const pluginPath = await getPluginPath(pluginConfig?.id)
+        const indexPath = await formatPath(pluginPath, `/${main}`)
+        console.log('indexPath', indexPath)
+        execModulePlugin(indexPath, pluginConfig)
     }
-    parseInputContent(target.value)
-}, 200)
+}
 </script>
 <template>
     <div class="search" data-tauri-drag-region>
         <h1>{{ title }}</h1>
-        <div class="input">
-            <input
-                type="text"
-                class="input-inner"
-                @input="handleInput"
-                @compositionstart="handleCompositionStart"
-                @compositionend="handleCompositionEnd"
-            />
-        </div>
-        <div class="result">
-            <div v-for="(item, index) in resultList" :key="index" class="result-item">
-                <p>{{ item.command }}</p>
-                <p>{{ item.val }}</p>
-                <p>{{ item.value }}</p>
-            </div>
-        </div>
+        <Search v-model="keywords" @update:modelValue="parseInputContent" />
+
+        <Result :data="resultList" @click="resultClick" />
     </div>
 </template>
 
@@ -127,29 +112,5 @@ const handleInput = useDebounceFn((e: Event) => {
 .search {
     padding: 24px;
     background-color: antiquewhite;
-}
-.input {
-    border-radius: 8px;
-    overflow: hidden;
-    &-inner {
-        border-radius: 8px;
-        display: block;
-        border: 1px solid var(--el-border-color);
-        outline: none;
-        height: 48px;
-        width: 100%;
-        padding: 0 16px;
-        font-size: 16px;
-        color: var(--el-text-color-primary);
-        box-shadow: inset 0 0 10px 0 rgba(51, 51, 51, 0.14);
-    }
-}
-
-.result {
-    margin-top: 12px;
-    &-item {
-        padding: 6px 12px;
-        font-size: 14px;
-    }
 }
 </style>
