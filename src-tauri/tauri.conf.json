@@ -38,7 +38,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["deb", "nsis", "rpm", "dmg"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -46,6 +46,25 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "category": "DeveloperTool"
+    "category": "DeveloperTool",
+    "resources": ["resource/**/*"],
+    "windows": {
+      "allowDowngrades": true,
+      "certificateThumbprint": null,
+      "digestAlgorithm": null,
+      "nsis": {
+        "languages": ["zh_CN"],
+        "installerHooks": "./installer.nsh"
+      },
+      "signCommand": null,
+      "timestampUrl": null,
+      "tsp": false,
+      "webviewFixedRuntimePath": null,
+      "webviewInstallMode": {
+        "silent": true,
+        "type": "downloadBootstrapper"
+      },
+      "wix": null
+    }
   }
 }

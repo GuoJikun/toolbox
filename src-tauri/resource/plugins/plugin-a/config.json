@@ -1,0 +1,15 @@
+{
+    "id": "plugin-a",
+    "name": "计算两数之和",
+    "main": "index.js",
+    "primissions": [],
+    "keywords": ["sum"],
+    "description": "计算两数之和",
+    "version": "0.9.0",
+    "author": "A",
+    "email": "",
+    "homeUrl": "https://xxxx.com",
+    "type": "script",
+    "scriptEnv": "nodejs",
+    "prefix": "sum"
+}
