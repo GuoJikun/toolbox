@@ -57,6 +57,55 @@ dependencies = [
 ]
 
 [[package]]
+name = "anstream"
+version = "0.6.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "418c75fa768af9c03be99d17643f93f79bbba589895012a80e3452a19ddda15b"
+dependencies = [
+ "anstyle",
+ "anstyle-parse",
+ "anstyle-query",
+ "anstyle-wincon",
+ "colorchoice",
+ "is_terminal_polyfill",
+ "utf8parse",
+]
+
+[[package]]
+name = "anstyle"
+version = "1.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "038dfcf04a5feb68e9c60b21c9625a54c2c0616e79b72b0fd87075a056ae1d1b"
+
+[[package]]
+name = "anstyle-parse"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c03a11a9034d92058ceb6ee011ce58af4a9bf61491aa7e1e59ecd24bd40d22d4"
+dependencies = [
+ "utf8parse",
+]
+
+[[package]]
+name = "anstyle-query"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad186efb764318d35165f1758e7dcef3b10628e26d41a44bc5550652e6804391"
+dependencies = [
+ "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "anstyle-wincon"
+version = "3.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61a38449feb7068f52bb06c12759005cf459ee52bb4adc1d5a7c4322d716fb19"
+dependencies = [
+ "anstyle",
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "anyhow"
 version = "1.0.86"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -487,6 +536,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap"
+version = "4.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "64acc1846d54c1fe936a78dc189c34e28d3f5afc348403f28ecf53660b9b8462"
+dependencies = [
+ "clap_builder",
+]
+
+[[package]]
+name = "clap_builder"
+version = "4.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fb8393d67ba2e7bfaf28a23458e4e2b543cc73a99595511eb207fdb8aede942"
+dependencies = [
+ "anstream",
+ "anstyle",
+ "clap_lex",
+ "strsim",
+]
+
+[[package]]
+name = "clap_lex"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b82cf0babdbd58558212896d1a4272303a57bdb245c2bf1147185fb45640e70"
+
+[[package]]
 name = "cocoa"
 version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -515,6 +591,12 @@ dependencies = [
  "libc",
  "objc",
 ]
+
+[[package]]
+name = "colorchoice"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b6a852b24ab71dffc585bcb46eaf7959d175cb865a7152e35b348d1b2960422"
 
 [[package]]
 name = "combine"
@@ -1695,6 +1777,12 @@ dependencies = [
  "is-docker",
  "once_cell",
 ]
+
+[[package]]
+name = "is_terminal_polyfill"
+version = "1.70.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8478577c03552c21db0e2724ffb8986a5ce7af88107e6be5d2ee6e158c12800"
 
 [[package]]
 name = "itoa"
@@ -3476,9 +3564,9 @@ checksum = "e1fc403891a21bcfb7c37834ba66a547a8f402146eba7265b5a6d88059c9ff2f"
 
 [[package]]
 name = "tauri"
-version = "2.0.0-beta.23"
+version = "2.0.0-beta.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68725c4f17f62f0fb1fa2eecaf391200bf00a9414c84f30783ddca10570690c3"
+checksum = "3eab508aad4ae86e23865e294b20a7bb89bd7afea523897b7478329b841d4295"
 dependencies = [
  "anyhow",
  "bytes",
@@ -3525,9 +3613,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-build"
-version = "2.0.0-beta.18"
+version = "2.0.0-beta.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1822847744f663babbfc8b7532a104734e9cf99e3408bba7109018bf9177917"
+checksum = "498f587026501e4bbc5d6273b63f8956b03c37b3d3b2027f9c756fcd468e9c62"
 dependencies = [
  "anyhow",
  "cargo_toml",
@@ -3547,9 +3635,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-codegen"
-version = "2.0.0-beta.18"
+version = "2.0.0-beta.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e36fa3c2e3bd935827fef1eed459885414fb27c82f687d8b9a15112c8a5c8f0"
+checksum = "43bbc731067e319ef60601bf5716d1e706ee9ae28e38c0587f7165c7d6824cdf"
 dependencies = [
  "base64 0.22.1",
  "brotli",
@@ -3574,9 +3662,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-macros"
-version = "2.0.0-beta.18"
+version = "2.0.0-beta.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34aba4bed4648c3cb17d421af5783c7c29a033a94ab8597ef3791dadea69289d"
+checksum = "36b4a44346577ccde75a24c62405a4c3b4f7a3a76614ee6cf1ed14a0b756795c"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -3588,9 +3676,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin"
-version = "2.0.0-beta.18"
+version = "2.0.0-beta.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "431ac9636bf81e7a04042399918ffa6b9d2413926dabc9366a24f6b487f64653"
+checksum = "1abe0b85472516d1033ba251ac81b9f18f02725aadcaad697c8b727e6505a6ad"
 dependencies = [
  "anyhow",
  "glob",
@@ -3601,6 +3689,21 @@ dependencies = [
  "tauri-utils",
  "toml 0.8.2",
  "walkdir",
+]
+
+[[package]]
+name = "tauri-plugin-cli"
+version = "2.0.0-beta.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22c997925db64e1cfa748dfc52b25b053c1b74453fd32a800a6b36d4e7a83e0f"
+dependencies = [
+ "clap",
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror",
 ]
 
 [[package]]
@@ -3678,9 +3781,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-runtime"
-version = "2.0.0-beta.19"
+version = "2.0.0-beta.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5fa872242a432195b814e87f91ce10f293ae5b01fbd1eb139455496260aa7c9"
+checksum = "fe978df03966febbebc608931dc2cf26ef94df70855a18b05f07134cf474de09"
 dependencies = [
  "dpi",
  "gtk",
@@ -3697,9 +3800,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-runtime-wry"
-version = "2.0.0-beta.19"
+version = "2.0.0-beta.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ad6d5ef3c05d1c4b6cf97b9eac1ca1ad8ff2a7057ad0a92b3e4c476f009341e"
+checksum = "11e4d568f61095f507b3fc4254dfbfff3b20de2a1d66167ffca3f6d90b14db8f"
 dependencies = [
  "cocoa",
  "gtk",
@@ -3721,9 +3824,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-utils"
-version = "2.0.0-beta.18"
+version = "2.0.0-beta.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f81a672883c9a67eb24727c99cce583625c919a5fb696c661603b426c463c72"
+checksum = "e20e51856f343c503892749b27d34042e6ca83a0369a12de3c5552d9874d04e8"
 dependencies = [
  "brotli",
  "cargo_metadata",
@@ -3969,6 +4072,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "tauri-plugin-cli",
  "tauri-plugin-dialog",
  "tauri-plugin-fs",
  "tauri-plugin-global-shortcut",
@@ -4211,6 +4315,12 @@ name = "utf-8"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
+
+[[package]]
+name = "utf8parse"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"

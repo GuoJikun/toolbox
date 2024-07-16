@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# rust target
+target
+
+# docs
+docs/src/.vitepress/cache
