@@ -15,7 +15,8 @@ const handleWebview = () => {
         version: '0.1.0',
         primissions: [],
         description: '计算器',
-        scriptEnv: 'node'
+        scriptEnv: 'node',
+        windowConfig: {}
     })
 }
 </script>

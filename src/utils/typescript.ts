@@ -40,7 +40,7 @@ interface PluginModuleConfig {
     windowConfig: WindowOptions
 }
 
-export type ScriptEnv = 'nodejs' | 'php' | 'python'
+export type ScriptEnv = 'node' | 'php' | 'python'
 interface PluginScriptConfig {
     id: string
     name: string

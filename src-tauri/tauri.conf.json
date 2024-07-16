@@ -36,6 +36,33 @@
       "csp": null
     }
   },
+  "plugins": {
+    "cli": {
+      "description": "Tauri CLI Plugin Example",
+      "args": [
+        {
+          "short": "i",
+          "name": "install",
+          "description": "Intall plugin"
+        },
+        {
+          "short": "c",
+          "name": "create",
+          "description": "Create a new plugin"
+        },
+        {
+          "short": "ls",
+          "name": "list",
+          "description": "Plugin list of installed"
+        },
+        {
+          "short": "v",
+          "name": "verbose",
+          "description": "Verbosity level"
+        }
+      ]
+    }
+  },
   "bundle": {
     "active": true,
     "targets": ["deb", "nsis", "rpm", "dmg"],
@@ -52,10 +79,6 @@
       "allowDowngrades": true,
       "certificateThumbprint": null,
       "digestAlgorithm": null,
-      "nsis": {
-        "languages": ["zh_CN"],
-        "installerHooks": "./installer.nsh"
-      },
       "signCommand": null,
       "timestampUrl": null,
       "tsp": false,

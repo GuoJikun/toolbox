@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
 import { ElDivider } from 'element-plus'
-import { h } from 'vue'
+import { h, PropType } from 'vue'
 
 const spacer = h(ElDivider, { style: { margin: '0' } })
 
 interface Props {
-    data: Array<Record<string, unknown>>
+    data: any[]
 }
-// @ts-ignore
-const props = withDefaults(defineProps<Props>(), { data: [] })
+const props = defineProps({
+    data: {
+        type: Array as PropType<Props['data']>,
+        required: true
+    }
+})
 
 type Emits = {
     click: [item: Record<string, unknown>]

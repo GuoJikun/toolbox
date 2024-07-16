@@ -45,7 +45,7 @@ export const execBinaryPlugin = async (executablePath: string, args: string[] = 
 export const execScriptPlugin = async (env: ScriptEnv, path: string, args: string[] = []) => {
     let fn = ''
     switch (env) {
-        case 'nodejs':
+        case 'node':
             fn = 'run_node_script'
             break
         case 'php':
