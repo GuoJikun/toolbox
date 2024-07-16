@@ -1,3 +1,5 @@
+import { type WindowOptions } from '@tauri-apps/api/window'
+
 export interface Plugin {
     logo?: string | URL
     id: string
@@ -35,6 +37,7 @@ interface PluginModuleConfig {
     homepage?: string
     keywords?: string[]
     shortcut?: string
+    windowConfig: WindowOptions
 }
 
 export type ScriptEnv = 'nodejs' | 'php' | 'python'
