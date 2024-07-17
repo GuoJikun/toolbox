@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
 import { Webview, type WebviewOptions } from '@tauri-apps/api/webview'
 import { exists, mkdir } from '@tauri-apps/plugin-fs'
-import { homeDir, join } from '@tauri-apps/api/path'
+import { resourceDir, join } from '@tauri-apps/api/path'
 import { getWindow } from './window'
 
 /**
@@ -11,8 +11,8 @@ import { getWindow } from './window'
  * @returns 插件目录
  */
 export const getPluginsPath = async () => {
-    const homePath = await homeDir()
-    const pluginDir = await join(homePath, '.vtools/plugins')
+    const homePath = await resourceDir()
+    const pluginDir = await join(homePath, '/plugins')
     return pluginDir
 }
 /**
@@ -71,23 +71,29 @@ export const execScriptPlugin = async (env: ScriptEnv, path: string, args: strin
 }
 
 export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) => {
-    const windowLabel = `toolbox-plugin-window-${pluginConfig.id}`
+    const { windowConfig = {}, id } = pluginConfig
+    const windowLabel = `toolbox-plugin-window-${id}`
     let currentWindow = getWindow(windowLabel)
     if (!currentWindow) {
         currentWindow = new Window(windowLabel, {
-            center: true,
+            center: windowConfig.fullscreen ? false : true,
             width: 1000,
-            height: 600
+            height: 600,
+            ...windowConfig
         })
     }
+
+    const windowOuterSize = await currentWindow.outerSize()
+    const windowInnerSize = await currentWindow.innerSize()
+    console.log('execModulePlugin window', await currentWindow.outerSize(), await currentWindow.innerSize())
     currentWindow.listen('tauri://window-created', () => {
         console.log('tauri://window-created')
     })
-    const webviewLabel = `toolbox-plugin-webview-${pluginConfig.id}`
+    const webviewLabel = `toolbox-plugin-webview-${id}`
     const webviewOption: WebviewOptions = {
         url: url,
-        width: 1000,
-        height: 600,
+        width: windowConfig.fullscreen ? windowOuterSize.width : windowInnerSize.width,
+        height: windowConfig.fullscreen ? windowOuterSize.height : windowInnerSize.height,
         x: 0,
         y: 0
     }
@@ -101,7 +107,7 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
         console.log('error', e)
     })
 
-    console.log('execModulePlugin', webview)
+    console.log('execModulePlugin webview', webview)
     currentWindow.show()
 }
 
