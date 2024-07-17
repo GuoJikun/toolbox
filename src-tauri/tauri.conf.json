@@ -51,7 +51,7 @@
           "description": "Create a new plugin"
         },
         {
-          "short": "ls",
+          "short": "l",
           "name": "list",
           "description": "Plugin list of installed"
         },
@@ -74,7 +74,7 @@
       "icons/icon.ico"
     ],
     "category": "DeveloperTool",
-    "resources": ["resource/**/*"],
+    "resources": ["resource/**/*", "plugins/**/*"],
     "windows": {
       "allowDowngrades": true,
       "certificateThumbprint": null,
