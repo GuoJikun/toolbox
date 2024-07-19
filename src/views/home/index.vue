@@ -27,6 +27,8 @@ const handleWebview = () => {
             <router-link to="/setting">设置</router-link>
             <router-link to="/plugins">插件</router-link>
             <el-button @click="handleWebview">打开 Webview 窗口</el-button>
+
+            <el-button @click="">权限检测</el-button>
         </el-space>
 
         <div>

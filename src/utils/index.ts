@@ -1,7 +1,8 @@
 import { Window, type WindowLabel } from '@tauri-apps/api/window'
 import { register, isRegistered, unregister } from '@tauri-apps/plugin-global-shortcut'
-
-import { join } from '@tauri-apps/api/path'
+import { Command } from '@tauri-apps/plugin-shell'
+import { join, resolveResource } from '@tauri-apps/api/path'
+import { readFile } from '@tauri-apps/plugin-fs'
 
 export const getWindow = (label: WindowLabel) => {
     const windows = Window.getAll()
@@ -35,4 +36,19 @@ export const registerShortcut = async (shortcut: string, callback: () => void) =
  */
 export const formatPath = async (...path: string[]) => {
     return await join(...path)
+}
+
+// 初始化一个caddy文件服务器
+export const initHttpServer = async () => {
+    const staticDirPath = await resolveResource('plugins')
+    console.log('staticDirPath', staticDirPath)
+    let command = Command.sidecar('binaries/caddy', [
+        'file-server',
+        '--listen',
+        'localhost:6543',
+        '--root',
+        staticDirPath
+    ])
+    const output = await command.execute()
+    console.log('output', output)
 }

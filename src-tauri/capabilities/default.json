@@ -36,6 +36,29 @@
     "fs:allow-exists",
     "fs:scope-home-recursive",
     "fs:scope-resource-recursive",
-    "cli:default"
+    "cli:default",
+    "shell:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "args": [
+            "file-server",
+            "--listen",
+            {
+              "validator": ".+"
+            },
+            "--root",
+            {
+              "validator": ".*"
+            }
+          ],
+          "cmd": "",
+          "name": "binaries/caddy",
+          "sidecar": true
+        }
+      ]
+    },
+    "fs:scope-resource"
   ]
 }

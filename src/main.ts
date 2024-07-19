@@ -10,7 +10,7 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 
 import '@/assets/css/global.scss'
 
-import { registerShortcut, getWindow } from '@/utils/index'
+import { registerShortcut, getWindow, initHttpServer } from '@/utils/index'
 
 async function addShortcut() {
     const shortcut = 'Alt+Space'
@@ -28,6 +28,7 @@ async function addShortcut() {
 }
 
 addShortcut()
+initHttpServer()
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)

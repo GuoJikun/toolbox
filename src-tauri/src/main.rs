@@ -2,13 +2,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use libloading::{Library, Symbol};
-// use serde_json::to_string;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
+use tauri_plugin_shell::ShellExt;
 
+use serde_json::Value;
 use std::path::PathBuf;
 use std::process::Command;
-
 use tauri_plugin_cli::CliExt;
 mod scripts;
 mod utils;
@@ -43,6 +43,28 @@ fn dynamic_command(plugin: String, fn_name: String) -> Result<String, String> {
         let result_str = result_c_str.to_str().map_err(|e| e.to_string())?;
         Ok(result_str.to_string())
     }
+}
+
+fn value_to_map(value: &Value) -> Result<HashMap<String, Value>, String> {
+    match value {
+        Value::Object(map) => {
+            let mut new_map = HashMap::with_capacity(map.len());
+            for (k, v) in map {
+                new_map.insert(k.clone(), v.clone());
+            }
+            Ok(new_map)
+        }
+        _ => Err(String::from("Expected a JSON object")),
+    }
+}
+
+#[tauri::command]
+fn add_acl() {
+    let capability = tauri::ipc::CapabilityBuilder::new("plugin-b");
+    capability
+        .window("toolbox-plugin-window-plugin-b")
+        .webview("toolbox-plugin-webview-plugin-b")
+        .permission("window:allow-is-fullscreen");
 }
 
 fn get_lib_ext() -> String {
@@ -109,13 +131,13 @@ fn main() {
             }
             Ok(())
         })
-        .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
             run_external_program,
             scripts::run_node_script,
             scripts::run_php_script,
             scripts::run_python_script,
             dynamic_command,
+            add_acl
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -3780,21 +3780,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-store"
-version = "2.0.0-beta.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43d52e3d7f967db0d8cf6b1078e392211871cbc423ed18c665263b913dde518f"
-dependencies = [
- "dunce",
- "log",
- "serde",
- "serde_json",
- "tauri",
- "tauri-plugin",
- "thiserror",
-]
-
-[[package]]
 name = "tauri-runtime"
 version = "2.0.0-beta.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4092,7 +4077,6 @@ dependencies = [
  "tauri-plugin-fs",
  "tauri-plugin-global-shortcut",
  "tauri-plugin-shell",
- "tauri-plugin-store",
  "walkdir",
 ]
 

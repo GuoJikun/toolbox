@@ -3,6 +3,7 @@
   "identifier": "plugin",
   "description": "Capability for the plugins window",
   "windows": ["toolbox-plugin-*"],
+  "webviews": ["toolbox-plugin-*"],
   "permissions": [
     "path:default",
     "event:default",

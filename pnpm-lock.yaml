@@ -17,6 +17,9 @@ importers:
       '@tauri-apps/plugin-cli':
         specifier: 2.0.0-beta.7
         version: 2.0.0-beta.7
+      '@tauri-apps/plugin-deep-link':
+        specifier: 2.0.0-beta.9
+        version: 2.0.0-beta.9
       '@tauri-apps/plugin-dialog':
         specifier: 2.0.0-beta.7
         version: 2.0.0-beta.7
@@ -665,6 +668,9 @@ packages:
 
   '@tauri-apps/plugin-cli@2.0.0-beta.7':
     resolution: {integrity: sha512-AOKtMrPmBumfOLdD2jv3ct5Sbm4LQJ+iTY5v+cQN2siW4wGZXWSLHH6ZwhbEyEclIOepHvPlaRv91gS1PQE76g==}
+
+  '@tauri-apps/plugin-deep-link@2.0.0-beta.9':
+    resolution: {integrity: sha512-phYfWEv3wOzswCUYumQCFiQDddUGeNVRpbtgF/658SCweFzgye09o/Qkq98XjjzE1qDswO9EofdUkrQ4QIG+Tw==}
 
   '@tauri-apps/plugin-dialog@2.0.0-beta.7':
     resolution: {integrity: sha512-myywwpsKbquDDzl5zaOmmLLv5O8EJ/GgHDAoVSPwO97R4iWzkDvj3HFF91tNh7i25Tu/bP6jYPAdZA1NCRxxtg==}
@@ -1841,6 +1847,10 @@ snapshots:
       '@tauri-apps/cli-win32-x64-msvc': 2.0.0-beta.22
 
   '@tauri-apps/plugin-cli@2.0.0-beta.7':
+    dependencies:
+      '@tauri-apps/api': 2.0.0-beta.15
+
+  '@tauri-apps/plugin-deep-link@2.0.0-beta.9':
     dependencies:
       '@tauri-apps/api': 2.0.0-beta.15
 

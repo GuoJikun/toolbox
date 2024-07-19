@@ -92,8 +92,9 @@ const resultClick = async (item: any) => {
     if (item.type === 'module') {
         const pluginConfig = item.raw
         const { main } = pluginConfig
-        const pluginPath = await getPluginPath(pluginConfig?.id)
-        const indexPath = await formatPath(pluginPath, `/${main}`)
+        // const pluginPath = await getPluginPath(pluginConfig?.id)
+        // const indexPath = await formatPath(pluginPath, `/${main}`)
+        const indexPath = `http://localhost:6543/${pluginConfig.id}/${main}`
         console.log('indexPath', indexPath)
         execModulePlugin(indexPath, pluginConfig)
     }

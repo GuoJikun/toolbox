@@ -7,8 +7,10 @@
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../dist"
+    
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "toolbox",
@@ -74,7 +76,13 @@
       "icons/icon.ico"
     ],
     "category": "DeveloperTool",
-    "resources": ["resource/**/*", "plugins/**/*"],
+    "resources": {
+      "resources/plugins/": "plugins/",
+      "resources/config/caddy.json": "config/caddy.json"
+    },
+    "externalBin": [
+      "binaries/caddy"
+    ],
     "windows": {
       "allowDowngrades": true,
       "certificateThumbprint": null,

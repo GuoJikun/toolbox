@@ -1,0 +1,1 @@
+{"type":"binary","id":"calc","name":"计算器","description":"简易计算器，支持四则运算","main":"toolbox-plugin-calc","version":"0.1.0","prefix":"calc","author":"Toolbox","homepage":"https://github.com/GuoJikun/toolbox-plugin-calc"}
