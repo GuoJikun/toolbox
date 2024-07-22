@@ -42,7 +42,7 @@ export const formatPath = async (...path: string[]) => {
 export const initHttpServer = async () => {
     const staticDirPath = await resolveResource('plugins')
     console.log('staticDirPath', staticDirPath)
-    let command = Command.sidecar('binaries/caddy', [
+    const command = Command.sidecar('binaries/caddy', [
         'file-server',
         '--listen',
         'localhost:6543',

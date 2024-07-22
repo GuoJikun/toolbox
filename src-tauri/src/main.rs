@@ -1,10 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use tauri::command;
 
 use libloading::{Library, Symbol};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
-use tauri_plugin_shell::ShellExt;
 
 use serde_json::Value;
 use std::path::PathBuf;
@@ -13,7 +13,7 @@ use tauri_plugin_cli::CliExt;
 mod scripts;
 mod utils;
 
-#[tauri::command]
+#[command]
 fn run_external_program(executable_path: String, args: Vec<String>) -> Result<String, String> {
     let output = Command::new(executable_path)
         .args(&args)
@@ -27,7 +27,7 @@ fn run_external_program(executable_path: String, args: Vec<String>) -> Result<St
     }
 }
 
-#[tauri::command]
+#[command]
 fn dynamic_command(plugin: String, fn_name: String) -> Result<String, String> {
     let lib_path_map = collect_dylib();
 
@@ -58,8 +58,17 @@ fn value_to_map(value: &Value) -> Result<HashMap<String, Value>, String> {
     }
 }
 
-#[tauri::command]
+#[command]
 fn add_acl() {
+    let capability = tauri::ipc::CapabilityBuilder::new("plugin-b");
+    capability
+        .window("toolbox-plugin-window-plugin-b")
+        .webview("toolbox-plugin-webview-plugin-b")
+        .permission("window:allow-is-fullscreen");
+}
+
+#[command]
+fn add_capabilities() {
     let capability = tauri::ipc::CapabilityBuilder::new("plugin-b");
     capability
         .window("toolbox-plugin-window-plugin-b")
@@ -137,7 +146,8 @@ fn main() {
             scripts::run_php_script,
             scripts::run_python_script,
             dynamic_command,
-            add_acl
+            add_acl,
+            add_capabilities
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
