@@ -1,15 +1,16 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use tauri::command;
+use tauri::{command, webview};
 
 use libloading::{Library, Symbol};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::path::PathBuf;
 use std::process::Command;
 use tauri_plugin_cli::CliExt;
+
 mod scripts;
 mod utils;
 
@@ -68,13 +69,53 @@ fn add_acl() {
 }
 
 #[command]
-fn add_capabilities() {
-    let capability = tauri::ipc::CapabilityBuilder::new("plugin-b");
-    capability
-        .window("toolbox-plugin-window-plugin-b")
-        .webview("toolbox-plugin-webview-plugin-b")
-        .permission("window:allow-is-fullscreen");
+fn add_capabilities(window: String, webview: String, permissions: Vec<String>) {
+    let mut capability = tauri::ipc::CapabilityBuilder::new(window);
+    if webview != "" {
+        capability = capability.webview(webview);
+    }
+    for permission in permissions {
+        capability = capability.permission(permission);
+    }
 }
+
+#[derive(Debug, serde::Serialize)]
+pub struct InstalledApp {
+    name: String,
+    version: String,
+    publisher: String,
+}
+
+#[command]
+fn get_installed_list() -> Vec<InstalledApp> {
+    let mut result: Vec<InstalledApp> = Vec::new();
+    let apps = installed::list();
+    match apps {
+        Err(_e) => {
+            return result;
+        }
+        Ok(res) => {
+            for app in res {
+                result.push(InstalledApp {
+                    name: app.name().to_string(),
+                    version: app.version().to_string(),
+                    publisher: app.publisher().to_string(),
+                });
+            }
+            return result;
+        }
+    }
+}
+// #[command]
+// fn get_installed_list() -> Vec<installed_pkg::App> {
+//     let apps = installed_pkg::list();
+//     match apps {
+//         Err(_e) => {
+//             return Vec::new();
+//         }
+//         Ok(res) => res,
+//     }
+// }
 
 fn get_lib_ext() -> String {
     if cfg!(target_os = "windows") {
@@ -147,7 +188,8 @@ fn main() {
             scripts::run_python_script,
             dynamic_command,
             add_acl,
-            add_capabilities
+            add_capabilities,
+            get_installed_list
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

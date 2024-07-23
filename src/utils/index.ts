@@ -38,7 +38,7 @@ export const formatPath = async (...path: string[]) => {
     return await join(...path)
 }
 
-// 初始化一个caddy文件服务器
+// 初始化一个 caddy 文件服务器
 export const initHttpServer = async () => {
     const staticDirPath = await resolveResource('plugins')
     console.log('staticDirPath', staticDirPath)

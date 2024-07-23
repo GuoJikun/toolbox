@@ -1,13 +1,15 @@
 import { defineStore } from 'pinia'
-import type { PluginConfig } from '@/utils/typescript'
+import type { PluginConfig, InstalledPkg } from '@/utils/typescript'
 
 interface State {
     plugins: PluginConfig[]
+    installedPkg: InstalledPkg[]
 }
 
 export const useIndexStore = defineStore('index', {
     state: (): State => ({
-        plugins: []
+        plugins: [],
+        installedPkg: []
     }),
 
     actions: {
@@ -16,10 +18,13 @@ export const useIndexStore = defineStore('index', {
         },
         updatePlugins(val: PluginConfig[]) {
             this.plugins = val
+        },
+        updateInstalledPkg(val: InstalledPkg[]) {
+            this.installedPkg = val
         }
     },
     persist: {
         key: 'vtools-index',
-        paths: ['plugins']
+        paths: ['plugins', 'installedPkg']
     }
 })

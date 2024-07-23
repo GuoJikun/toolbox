@@ -59,3 +59,9 @@ interface PluginScriptConfig {
 export interface PluginConfig extends PluginBinaryConfig, PluginModuleConfig, PluginScriptConfig {
     type: 'script' | 'binary' | 'module'
 }
+
+export interface InstalledPkg {
+    name: string
+    version: string
+    publisher: string
+}

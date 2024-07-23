@@ -1,22 +1,35 @@
 <script setup lang="ts">
 import InstallPlugin from '@/components/install-plugin.vue'
-import { execModulePlugin } from '@/utils/plugin'
+import { invoke } from '@tauri-apps/api/core'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 
 const handlerInstallSuccess = (path: string) => {
     console.log('path', path)
 }
 
-const handleWebview = () => {
-    execModulePlugin('/search', {
-        type: 'module',
-        id: 'calc',
-        name: '计算器',
-        main: 'index.html',
-        version: '0.1.0',
-        primissions: [],
-        description: '计算器',
-        scriptEnv: 'node',
-        windowConfig: {}
+const handleBeforePermission = () => {
+    console.log('添加权限前')
+    const currentWindow = getCurrentWindow()
+    currentWindow.isMaximized().then((res) => {
+        console.log('isMaximized', res)
+    })
+}
+const handlePermission = () => {
+    console.log('添加权限')
+    invoke('add_capabilities', {
+        window: 'main',
+        webview: '',
+        permissions: ['window:allow-is-maximize']
+    }).then((res) => {
+        console.log('add_capabilities', res)
+    })
+}
+
+const handleAfterPermission = () => {
+    console.log('添加权限后')
+    const currentWindow = getCurrentWindow()
+    currentWindow.isMaximized().then((res) => {
+        console.log('isMaximized', res)
     })
 }
 </script>
@@ -26,9 +39,10 @@ const handleWebview = () => {
         <el-space>
             <router-link to="/setting">设置</router-link>
             <router-link to="/plugins">插件</router-link>
-            <el-button @click="handleWebview">打开 Webview 窗口</el-button>
 
-            <el-button @click="">权限检测</el-button>
+            <el-button @click="handleBeforePermission">添加权限前</el-button>
+            <el-button @click="handlePermission">添加权限</el-button>
+            <el-button @click="handleAfterPermission">添加权限后</el-button>
         </el-space>
 
         <div>

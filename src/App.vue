@@ -3,9 +3,10 @@ import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { useIndexStore } from './store'
 import { readDir, exists, readTextFile } from '@tauri-apps/plugin-fs'
+import { invoke } from '@tauri-apps/api/core'
 import { formatPath } from '@/utils/index'
 import { getPluginsPath, getPluginPath } from '@/utils/plugin'
-import { PluginConfig } from './utils/typescript'
+import { PluginConfig, InstalledPkg } from './utils/typescript'
 
 const getPlugins = async () => {
     const plugins: Array<PluginConfig> = []
@@ -30,10 +31,18 @@ const getPlugins = async () => {
     return plugins
 }
 
+const getInstalledPkg = async () => {
+    const installedPkg: InstalledPkg[] = await invoke('get_installed_list')
+    return installedPkg.filter((item) => item.name)
+}
+
 const mainStore = useIndexStore()
 onMounted(async () => {
     const plugins = await getPlugins()
     mainStore.updatePlugins(plugins)
+    const installedPkg = await getInstalledPkg()
+    console.log('installedPkg', installedPkg)
+    mainStore.updateInstalledPkg(installedPkg)
 })
 </script>
 

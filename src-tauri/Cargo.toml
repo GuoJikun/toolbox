@@ -21,6 +21,8 @@ tauri-plugin-dialog = "2.0.0-beta"
 tauri-plugin-fs = "2.0.0-beta"
 dirs-next = "2.0.0"
 walkdir = "2.3"
+installed = "0.1.0"
+installed_pkg = "0.1.2"
 
 [target."cfg(not(any(target_os = \"android\", target_os = \"ios\")))".dependencies]
 tauri-plugin-cli = "2.0.0-beta"
