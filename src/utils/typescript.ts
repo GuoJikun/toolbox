@@ -65,3 +65,8 @@ export interface InstalledPkg {
     version: string
     publisher: string
 }
+
+export interface InputFormater {
+    prefix: string
+    value: Array<string>
+}

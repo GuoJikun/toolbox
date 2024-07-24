@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { formatPath } from '@/utils/index'
 import { execBinaryPlugin, getPluginPath, getPluginOfPrefix, execScriptPlugin, execModulePlugin } from '@/utils/plugin'
+import type { PluginConfig, InputFormater } from '@/utils/typescript'
 import { useIndexStore } from '@/store'
 
 import Search from './components/search.vue'
@@ -12,25 +13,31 @@ const mainStore = useIndexStore()
 const title = 'Search'
 
 const keywords = ref<string>('')
-const resultList = ref<Array<Record<string, unknown>>>([])
 
-const parseInputContent = async (content: string) => {
+interface Result {
+    source: string
+    command: string
+    value: string
+    raw?: PluginConfig | Record<string, unknown>
+}
+const resultList = ref<Array<Result>>([])
+
+const parseInputContent = async (content: InputFormater) => {
     resultList.value = []
-    const input = content.trim()
-    if (input === '') {
-        return
+    const { prefix, value } = content
+    if (value.length === 0) {
+        return []
     }
-    const args = input.split(' ')
-    console.log('args', args)
-    if (args.length > 1) {
-        const [command, ...val] = args
+    const keywords = value.map((c) => c.toLocaleLowerCase())
+    console.log('keywords', keywords)
+    if (prefix !== '') {
+        console.log('有指定执行程序-即有前缀')
 
-        const pluginConfig = getPluginOfPrefix(command, mainStore.plugins)
+        const pluginConfig = getPluginOfPrefix(prefix, mainStore.plugins)
         if (!pluginConfig) {
             resultList.value.push({
-                type: 'error',
-                command,
-                val,
+                source: 'error',
+                command: prefix,
                 value: '未找到插件'
             })
             return
@@ -39,11 +46,10 @@ const parseInputContent = async (content: string) => {
         if (pluginType === 'binary') {
             const pluginPath = await getPluginPath(pluginConfig?.id)
             const binaryPath = await formatPath(pluginPath, 'toolbox-plugin-calc')
-            const result = await execBinaryPlugin(binaryPath, val)
+            const result = (await execBinaryPlugin(binaryPath, keywords)) as string
             resultList.value.push({
-                type: 'result',
-                command,
-                val,
+                source: 'binary',
+                command: prefix,
                 value: result,
                 raw: pluginConfig
             })
@@ -51,11 +57,10 @@ const parseInputContent = async (content: string) => {
             const { scriptEnv, main } = pluginConfig
             const pluginPath = await getPluginPath(pluginConfig?.id)
             const scriptPath = await formatPath(pluginPath, `/${main}`)
-            const result = await execScriptPlugin(scriptEnv, scriptPath, val || [])
+            const result = (await execScriptPlugin(scriptEnv, scriptPath, keywords)) as string
             resultList.value.push({
-                type: 'result',
-                command,
-                val,
+                source: 'script',
+                command: prefix,
                 value: result,
                 raw: pluginConfig
             })
@@ -63,27 +68,44 @@ const parseInputContent = async (content: string) => {
 
         return
     } else {
-        console.log('插件类型是 Module')
-        resultList.value = mainStore.plugins
-            .filter((item) => {
-                if (item.type !== 'module') {
+        console.log('没有指定执行程序-即没有前缀')
+        let keyword = keywords[0]
+        resultList.value = [
+            ...mainStore.plugins
+                .filter((item) => {
+                    if (item.type !== 'module') {
+                        return false
+                    }
+                    if (
+                        item.keywords?.some((c) => c.includes(keyword)) ||
+                        item?.name.toLocaleLowerCase().includes(keyword)
+                    ) {
+                        return true
+                    }
                     return false
-                }
-                if (item.keywords?.some((c) => c.includes(input)) || item?.name.includes(input)) {
-                    return true
-                }
-                return false
-            })
-            .map((item) => {
-                console.log('item', 1)
-                return {
-                    type: 'module',
-                    command: '',
-                    val: item.main,
-                    value: item.description,
-                    raw: item
-                }
-            })
+                })
+                .map((item) => {
+                    console.log('item', 1)
+                    return {
+                        source: 'module',
+                        command: '',
+                        val: item.main,
+                        value: item.description,
+                        raw: item
+                    }
+                }),
+            ...mainStore.installedPkg
+                .filter((item) => item.name.toLocaleLowerCase().includes(keyword))
+                .map((item) => {
+                    return {
+                        source: 'installedPkg',
+                        command: '',
+                        val: item.name,
+                        value: item.name,
+                        raw: item
+                    }
+                })
+        ]
     }
 }
 
@@ -103,7 +125,7 @@ const resultClick = async (item: any) => {
 <template>
     <div class="search" data-tauri-drag-region>
         <h1>{{ title }}</h1>
-        <Search v-model="keywords" @update:modelValue="parseInputContent" />
+        <Search v-model="keywords" @change="parseInputContent" />
 
         <Result :data="resultList" @click="resultClick" />
     </div>

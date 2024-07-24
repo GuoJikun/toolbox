@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
+import type { InputFormater } from '@/utils/typescript'
 
 interface Props {
     modelValue?: string
@@ -10,10 +11,36 @@ const props = withDefaults(defineProps<Props>(), {
     modelValue: '',
     delay: 260
 })
+
 type Emits = {
     'update:modelValue': [value: string]
+    change: [value: InputFormater]
 }
 const emit = defineEmits<Emits>()
+
+const parseInput = (content: string): InputFormater => {
+    const input = content.trim()
+    console.log(input)
+    if (input === '') {
+        return {
+            prefix: '',
+            value: []
+        }
+    }
+    const args = input.split(' ')
+    if (args.length > 1) {
+        const [command, ...val] = args
+        return {
+            prefix: command,
+            value: val
+        }
+    } else {
+        return {
+            prefix: '',
+            value: args
+        }
+    }
+}
 
 let compositioned = false
 const handleCompositionStart = () => {
@@ -23,6 +50,7 @@ const handleCompositionEnd = (e: Event) => {
     compositioned = false
     const target = e.target as HTMLInputElement
     emit('update:modelValue', target.value)
+    emit('change', parseInput(target.value))
 }
 const handleInput = useDebounceFn((e: Event) => {
     const target = e.target as HTMLInputElement
@@ -30,6 +58,7 @@ const handleInput = useDebounceFn((e: Event) => {
         return
     }
     emit('update:modelValue', target.value)
+    emit('change', parseInput(target.value))
 }, props.delay)
 </script>
 <template>
