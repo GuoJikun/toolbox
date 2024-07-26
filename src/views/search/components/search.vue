@@ -57,6 +57,7 @@ const handleInput = useDebounceFn((e: Event) => {
     if (compositioned) {
         return
     }
+
     emit('update:modelValue', target.value)
     emit('change', parseInput(target.value))
 }, props.delay)

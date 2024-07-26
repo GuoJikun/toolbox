@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { formatPath } from '@/utils/index'
+import { formatPath, runSoftware } from '@/utils/index'
 import { execBinaryPlugin, getPluginPath, getPluginOfPrefix, execScriptPlugin, execModulePlugin } from '@/utils/plugin'
 import type { PluginConfig, InputFormater } from '@/utils/typescript'
 import { useIndexStore } from '@/store'
@@ -23,6 +23,7 @@ interface Result {
 const resultList = ref<Array<Result>>([])
 
 const parseInputContent = async (content: InputFormater) => {
+    console.log('content', content)
     resultList.value = []
     const { prefix, value } = content
     if (value.length === 0) {
@@ -111,7 +112,7 @@ const parseInputContent = async (content: InputFormater) => {
 
 const resultClick = async (item: any) => {
     console.log('item', item)
-    if (item.type === 'module') {
+    if (item.source === 'module') {
         const pluginConfig = item.raw
         const { main } = pluginConfig
         // const pluginPath = await getPluginPath(pluginConfig?.id)
@@ -119,6 +120,13 @@ const resultClick = async (item: any) => {
         const indexPath = `http://localhost:6543/${pluginConfig.id}/${main}`
         console.log('indexPath', indexPath)
         execModulePlugin(indexPath, pluginConfig)
+    } else if (item.source === 'installedPkg') {
+        console.log('执行已安装的程序包')
+        if (item.raw.bin) {
+            runSoftware(item.raw.bin)
+        } else {
+            console.log('未找到可执行文件')
+        }
     }
 }
 </script>

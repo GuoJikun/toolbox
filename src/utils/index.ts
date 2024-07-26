@@ -2,7 +2,6 @@ import { Window, type WindowLabel } from '@tauri-apps/api/window'
 import { register, isRegistered, unregister } from '@tauri-apps/plugin-global-shortcut'
 import { Command } from '@tauri-apps/plugin-shell'
 import { join, resolveResource } from '@tauri-apps/api/path'
-import { readFile } from '@tauri-apps/plugin-fs'
 
 export const getWindow = (label: WindowLabel) => {
     const windows = Window.getAll()
@@ -51,4 +50,9 @@ export const initHttpServer = async () => {
     ])
     const output = await command.execute()
     console.log('output', output)
+}
+
+/**执行本机应用程序 */
+export const runSoftware = async (path: string) => {
+    Command.create(path).execute()
 }
