@@ -1,13 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use installed_pkg::Installed;
-use tauri::{command, webview};
+
+use tauri::command;
 
 use libloading::{Library, Symbol};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 
-use serde_json::{json, Value};
+use serde_json::Value;
 use std::path::PathBuf;
 use std::process::Command;
 use tauri_plugin_cli::CliExt;
@@ -80,33 +80,6 @@ fn add_capabilities(window: String, webview: String, permissions: Vec<String>) {
     }
 }
 
-#[derive(Debug, serde::Serialize)]
-pub struct InstalledApp {
-    name: String,
-    version: String,
-    publisher: String,
-}
-
-// #[command]
-// fn get_installed_list() -> Vec<InstalledApp> {
-//     let mut result: Vec<InstalledApp> = Vec::new();
-//     let apps = installed::list();
-//     match apps {
-//         Err(_e) => {
-//             return result;
-//         }
-//         Ok(res) => {
-//             for app in res {
-//                 result.push(InstalledApp {
-//                     name: app.name().to_string(),
-//                     version: app.version().to_string(),
-//                     publisher: app.publisher().to_string(),
-//                 });
-//             }
-//             return result;
-//         }
-//     }
-// }
 #[command]
 fn get_installed_list() -> Vec<installed_pkg::platform::App> {
     let apps = installed_pkg::list();

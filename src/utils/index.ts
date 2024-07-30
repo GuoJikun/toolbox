@@ -2,6 +2,7 @@ import { Window, type WindowLabel } from '@tauri-apps/api/window'
 import { register, isRegistered, unregister } from '@tauri-apps/plugin-global-shortcut'
 import { Command } from '@tauri-apps/plugin-shell'
 import { join, resolveResource } from '@tauri-apps/api/path'
+import { invoke } from '@tauri-apps/api/core'
 
 export const getWindow = (label: WindowLabel) => {
     const windows = Window.getAll()
@@ -54,5 +55,12 @@ export const initHttpServer = async () => {
 
 /**执行本机应用程序 */
 export const runSoftware = async (path: string) => {
-    Command.create(path).execute()
+    // Command.create(path).execute()
+    invoke('run_external_program', { executablePath: path, args: [] })
+        .then((res) => {
+            console.log(res)
+        })
+        .catch((err) => {
+            throw new Error(err)
+        })
 }

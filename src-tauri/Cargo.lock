@@ -1748,11 +1748,12 @@ dependencies = [
 
 [[package]]
 name = "installed_pkg"
-version = "0.2.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "abb233df0b02dfa579eac990d90e9befa320a6e9428169db9f7f53ec8511c5cc"
+checksum = "3d19b605998e6532d0676806921582cfdaa06861d701bc44cef566ff84c69a45"
 dependencies = [
  "lnk",
+ "plist",
  "serde",
  "winreg",
 ]

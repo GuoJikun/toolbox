@@ -21,7 +21,7 @@ tauri-plugin-dialog = "2.0.0-beta"
 tauri-plugin-fs = "2.0.0-beta"
 dirs-next = "2.0.0"
 walkdir = "2.3"
-installed_pkg = "0.2.3"
+installed_pkg = "0.3.4"
 winreg = { version = "0.52.0", features = [] }
 
 [target."cfg(not(any(target_os = \"android\", target_os = \"ios\")))".dependencies]

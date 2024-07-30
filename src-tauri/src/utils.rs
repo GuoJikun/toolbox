@@ -5,7 +5,7 @@ use std::io;
 use std::path::Path;
 use walkdir::WalkDir;
 
-pub fn copy_dir_all(src: &Path, dst: &Path) -> io::Result<()> {
+pub fn copy_to(src: &Path, dst: &Path) -> io::Result<()> {
     if !dst.exists() {
         fs::create_dir_all(dst)?;
     }
@@ -28,16 +28,27 @@ pub fn copy_dir_all(src: &Path, dst: &Path) -> io::Result<()> {
     Ok(())
 }
 
+// 读取 JSON 配置文件，返回一个 json::Value
 #[derive(Debug, Deserialize)]
 pub struct Config {
-    plugin_root: String,
+    config: serde_json::Value,
 }
-pub fn read_json_file<P: AsRef<Path>>(path: P) -> Result<Config, Box<dyn std::error::Error>> {
-    // 打开文件
-    let file = fs::File::open(path)?;
-    // 创建一个缓冲读取器
-    let reader = io::BufReader::new(file);
-    // 解析JSON文件
-    let config = serde_json::from_reader(reader)?;
-    Ok(config)
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            config: serde_json::Value::Null,
+        }
+    }
+}
+
+impl Config {
+    fn new<P: AsRef<Path>>(path: P) -> Self {
+        // 打开文件
+        let file = fs::File::open(path).expect("file not found");
+        // 创建一个缓冲读取器
+        let reader = io::BufReader::new(file);
+        // 解析JSON文件
+        let config = serde_json::from_reader(reader).expect("error while reading json file");
+        Config { config }
+    }
 }
