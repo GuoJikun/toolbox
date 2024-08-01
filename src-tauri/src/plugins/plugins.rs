@@ -1,13 +1,61 @@
+use md5;
 use std::fs::File;
-use std::io::{self, Read, Write, Seek, SeekFrom};
+use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::Path;
-use md5::{Md5, Digest};
+use std::process::{Command, Output};
+use tauri::command;
+
+#[command]
+pub fn run_node_script(script: String, args: Vec<String>) -> Result<String, String> {
+    let mut full_args = vec![script];
+    full_args.extend(args);
+
+    let output: Output = Command::new("node")
+        .args(&full_args)
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        Ok(stdout)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        Err(stderr)
+    }
+}
+
+#[command]
+pub fn run_php_script(script: String, args: Vec<String>) -> Result<String, String> {
+    run_script("php", script, args)
+}
+
+#[command]
+pub fn run_python_script(script: String, args: Vec<String>) -> Result<String, String> {
+    run_script("python", script, args)
+}
+
+fn run_script(command: &str, script: String, args: Vec<String>) -> Result<String, String> {
+    let mut full_args = vec!["-c".to_string(), script];
+    full_args.extend(args);
+    println!("Running script: {} {:?}", command, full_args);
+    let output: Output = Command::new(command)
+        .args(&full_args)
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        Ok(stdout)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        Err(stderr)
+    }
+}
 
 const HEADER: &[u8; 4] = b"PLUG"; // 自定义文件头
+pub struct Tools;
 
-pub struct Plugin;
-
-impl Plugin {
+impl Tools {
     pub fn create(plugin_data_path: &str, plugin_package_path: &str) -> io::Result<()> {
         // 读取插件数据
         let mut data_file = File::open(plugin_data_path)?;
@@ -15,10 +63,9 @@ impl Plugin {
         data_file.read_to_end(&mut data)?;
 
         // 计算插件数据的MD5校验和
-        let mut hasher = Md5::new();
-        hasher.update(&data);
-        let checksum = hasher.finalize();
-        let checksum_str = format!("{:x}", checksum);
+        let hasher = md5::compute(&data);
+
+        let checksum_str = format!("{:x}", hasher);
 
         // 创建插件包文件
         let mut package_file = File::create(plugin_package_path)?;
@@ -65,9 +112,9 @@ impl Plugin {
         file.read_exact(&mut data)?;
 
         // 计算插件数据的MD5校验和
-        let mut hasher = Md5::new();
-        hasher.update(&data);
-        let calculated_checksum = format!("{:x}", hasher.finalize());
+        let hasher = md5::compute(&data);
+
+        let calculated_checksum = format!("{:x}", hasher);
 
         // 比较计算的校验和与存储的校验和
         Ok(&calculated_checksum.as_bytes() == &stored_checksum)
@@ -102,12 +149,12 @@ impl Plugin {
     }
 
     pub fn verify_and_install(plugin_path: &str, install_dir: &str) -> io::Result<()> {
-        if !Plugin::verify(plugin_path)? {
+        if !Tools::verify(plugin_path)? {
             eprintln!("Checksum verification failed");
             return Ok(());
         }
 
-        Plugin::install(plugin_path, install_dir)?;
+        Tools::install(plugin_path, install_dir)?;
         Ok(())
     }
 }

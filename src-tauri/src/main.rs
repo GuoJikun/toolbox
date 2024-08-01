@@ -7,13 +7,12 @@ use libloading::{Library, Symbol};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 
-use serde_json::Value;
 use std::path::PathBuf;
 use std::process::Command;
 use tauri_plugin_cli::CliExt;
 
-mod scripts;
-mod utils;
+pub mod plugins;
+use plugins::{run_node_script, run_php_script, run_python_script};
 
 #[command]
 fn run_external_program(executable_path: String, args: Vec<String>) -> Result<String, String> {
@@ -44,19 +43,6 @@ fn dynamic_command(plugin: String, fn_name: String) -> Result<String, String> {
         let result_c_str = CStr::from_ptr(func());
         let result_str = result_c_str.to_str().map_err(|e| e.to_string())?;
         Ok(result_str.to_string())
-    }
-}
-
-fn value_to_map(value: &Value) -> Result<HashMap<String, Value>, String> {
-    match value {
-        Value::Object(map) => {
-            let mut new_map = HashMap::with_capacity(map.len());
-            for (k, v) in map {
-                new_map.insert(k.clone(), v.clone());
-            }
-            Ok(new_map)
-        }
-        _ => Err(String::from("Expected a JSON object")),
     }
 }
 
@@ -157,9 +143,9 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             run_external_program,
-            scripts::run_node_script,
-            scripts::run_php_script,
-            scripts::run_python_script,
+            run_node_script,
+            run_php_script,
+            run_python_script,
             dynamic_command,
             add_acl,
             add_capabilities,
