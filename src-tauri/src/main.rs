@@ -57,8 +57,19 @@ fn get_installed_list() -> Vec<installed_pkg::platform::App> {
     }
 }
 
+#[cfg(desktop)]
+mod tray;
+
 fn main() {
     tauri::Builder::default()
+        .setup(|app| {
+            #[cfg(all(desktop))]
+            {
+                let handle = app.handle();
+                tray::create_tray(handle)?;
+            }
+            Ok(())
+        })
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
