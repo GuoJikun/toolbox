@@ -1,5 +1,5 @@
 use std::{
-    fs,
+    fs::{self},
     path::{Path, PathBuf},
 };
 
@@ -131,7 +131,7 @@ impl Installed {
 #[cfg(target_os = "macos")]
 use plist;
 #[cfg(target_os = "macos")]
-use std::{fs, io::BufReader, path::Path};
+use std::{fs::File, io::BufReader};
 
 #[cfg(target_os = "macos")]
 impl Installed {
@@ -177,13 +177,9 @@ impl Installed {
 
                         // 应用程序图标路径
                         let icon_path = app_path.join("Contents/Resources/AppIcon.icns");
-
+                        let name = app_name.to_string();
                         // 输出应用程序信息
-                        apps.push(App {
-                            name: app_name.to_string(),
-                            path: executable_path.to_str().unwrap().to_string(),
-                            icon: icon_path.to_str().unwrap().to_string(),
-                        });
+                        apps.push(App::new(Some(name), Some(executable_path), Some(icon_path)));
                     }
                 }
             }
