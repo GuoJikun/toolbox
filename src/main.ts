@@ -28,7 +28,7 @@ async function addShortcut() {
 }
 
 addShortcut()
-initHttpServer()
+// initHttpServer()
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)

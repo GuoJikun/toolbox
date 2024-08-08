@@ -12,6 +12,9 @@ use plugins::{run_node_script, run_php_script, run_python_script};
 mod dylib;
 use dylib::dynamic_command;
 
+mod apps;
+use apps::Installed;
+
 #[command]
 fn run_external_program(executable_path: String, args: Vec<String>) -> Result<String, String> {
     let output = Command::new(executable_path)
@@ -47,14 +50,11 @@ fn add_capabilities(window: String, webview: String, permissions: Vec<String>) {
 }
 
 #[command]
-fn get_installed_list() -> Vec<installed_pkg::platform::App> {
-    let apps = installed_pkg::list();
-    match apps {
-        Err(_e) => {
-            return Vec::new();
-        }
-        Ok(res) => return res.apps,
-    }
+fn get_installed_list() -> Vec<apps::App> {
+    let result = Installed::new();
+    println!("{:?}", result.apps);
+    let apps = result.apps;
+    return apps;
 }
 
 #[cfg(desktop)]

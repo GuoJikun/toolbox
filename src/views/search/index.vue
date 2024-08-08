@@ -122,8 +122,8 @@ const resultClick = async (item: any) => {
         execModulePlugin(indexPath, pluginConfig)
     } else if (item.source === 'installedPkg') {
         console.log('执行已安装的程序包')
-        if (item.raw.bin) {
-            runSoftware(item.raw.bin)
+        if (item.raw.path) {
+            runSoftware(item.raw.path)
         } else {
             console.log('未找到可执行文件')
         }

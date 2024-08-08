@@ -1747,18 +1747,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "installed_pkg"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d19b605998e6532d0676806921582cfdaa06861d701bc44cef566ff84c69a45"
-dependencies = [
- "lnk",
- "plist",
- "serde",
- "winreg",
-]
-
-[[package]]
 name = "instant"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4112,9 +4100,10 @@ name = "toolbox"
 version = "0.1.0"
 dependencies = [
  "dirs-next",
- "installed_pkg",
  "libloading 0.8.4",
+ "lnk",
  "md5",
+ "plist",
  "serde",
  "serde_json",
  "tauri",
