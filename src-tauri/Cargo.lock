@@ -4114,6 +4114,7 @@ dependencies = [
  "tauri-plugin-global-shortcut",
  "tauri-plugin-shell",
  "walkdir",
+ "winapi",
  "winreg",
 ]
 

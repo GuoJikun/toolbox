@@ -40,7 +40,8 @@ impl App {
 }
 
 #[cfg(target_os = "windows")]
-use lnk::ShellLink;
+mod lnk;
+
 #[cfg(target_os = "windows")]
 impl Installed {
     pub fn new() -> Self {
@@ -57,21 +58,23 @@ impl Installed {
         {
             return None;
         }
-        // 使用 ShellLink:: 读取快捷方式
-        match ShellLink::open(lnk_path) {
-            Ok(shell_link) => match shell_link.link_info() {
-                Some(link_info) => {
-                    let name = shell_link.name().clone();
-                    let path = link_info.local_base_path().clone().map(PathBuf::from);
-                    let icon = shell_link.icon_location().clone().map(PathBuf::from);
-                    return Option::Some(App::new(name, path, icon));
-                }
-                _ => {
-                    return None;
-                }
-            },
-            Err(_) => return None,
-        };
+
+        let name: Option<String> = lnk_path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .map(|s| s.to_string());
+
+        let shell_link = lnk::get_shortcut_info(lnk_path.as_os_str().to_str().unwrap());
+        match shell_link {
+            Some(shell_link) => {
+                let path = shell_link.target_path().cloned();
+                let icon = shell_link.icon_location();
+                return Option::Some(App::new(name, path, icon.map(PathBuf::from)));
+            }
+            None => {
+                return None;
+            }
+        }
     }
     fn traverse_dir(dir_path: &Path, apps: &mut Vec<App>) {
         if let Ok(entries) = fs::read_dir(dir_path) {

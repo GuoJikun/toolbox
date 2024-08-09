@@ -52,7 +52,6 @@ fn add_capabilities(window: String, webview: String, permissions: Vec<String>) {
 #[command]
 fn get_installed_list() -> Vec<apps::App> {
     let result = Installed::new();
-    println!("{:?}", result.apps);
     let apps = result.apps;
     return apps;
 }
