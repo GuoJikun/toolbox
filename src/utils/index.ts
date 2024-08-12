@@ -56,11 +56,7 @@ export const initHttpServer = async () => {
 /**执行本机应用程序 */
 export const runSoftware = async (path: string) => {
     // Command.create(path).execute()
-    invoke('run_external_program', { executablePath: path, args: [] })
-        .then((res) => {
-            console.log(res)
-        })
-        .catch((err) => {
-            throw new Error(err)
-        })
+    const res = await invoke('run_external_program', { executablePath: path, args: [] })
+
+    console.log(res)
 }

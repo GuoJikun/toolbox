@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
 import type { InputFormater } from '@/utils/typescript'
+import { computed } from 'vue'
 
 interface Props {
     modelValue?: string
@@ -18,9 +19,13 @@ type Emits = {
 }
 const emit = defineEmits<Emits>()
 
+const modelValue = computed({
+    get: () => props.modelValue,
+    set: (val) => emit('update:modelValue', val)
+})
+
 const parseInput = (content: string): InputFormater => {
     const input = content.trim()
-    console.log(input)
     if (input === '') {
         return {
             prefix: '',
@@ -57,7 +62,6 @@ const handleInput = useDebounceFn((e: Event) => {
     if (compositioned) {
         return
     }
-
     emit('update:modelValue', target.value)
     emit('change', parseInput(target.value))
 }, props.delay)
@@ -65,6 +69,7 @@ const handleInput = useDebounceFn((e: Event) => {
 <template>
     <div class="input">
         <input
+            :value="props.modelValue"
             type="text"
             class="input-inner"
             @input="handleInput"

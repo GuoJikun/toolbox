@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { formatPath, runSoftware } from '@/utils/index'
+import { formatPath, runSoftware, getWindow } from '@/utils/index'
 import { execBinaryPlugin, getPluginPath, getPluginOfPrefix, execScriptPlugin, execModulePlugin } from '@/utils/plugin'
 import type { PluginConfig, InputFormater } from '@/utils/typescript'
 import { useIndexStore } from '@/store'
@@ -16,7 +16,7 @@ const keywords = ref<string>('')
 
 interface Result {
     source: string
-    command: string
+    name: string
     value: string
     raw?: PluginConfig | Record<string, unknown>
 }
@@ -38,7 +38,7 @@ const parseInputContent = async (content: InputFormater) => {
         if (!pluginConfig) {
             resultList.value.push({
                 source: 'error',
-                command: prefix,
+                name: prefix,
                 value: '未找到插件'
             })
             return
@@ -50,7 +50,7 @@ const parseInputContent = async (content: InputFormater) => {
             const result = (await execBinaryPlugin(binaryPath, keywords)) as string
             resultList.value.push({
                 source: 'binary',
-                command: prefix,
+                name: prefix,
                 value: result,
                 raw: pluginConfig
             })
@@ -61,7 +61,7 @@ const parseInputContent = async (content: InputFormater) => {
             const result = (await execScriptPlugin(scriptEnv, scriptPath, keywords)) as string
             resultList.value.push({
                 source: 'script',
-                command: prefix,
+                name: prefix,
                 value: result,
                 raw: pluginConfig
             })
@@ -89,8 +89,7 @@ const parseInputContent = async (content: InputFormater) => {
                     console.log('item', 1)
                     return {
                         source: 'module',
-                        command: '',
-                        val: item.main,
+                        name: item.main,
                         value: item.description,
                         raw: item
                     }
@@ -100,9 +99,8 @@ const parseInputContent = async (content: InputFormater) => {
                 .map((item) => {
                     return {
                         source: 'installedPkg',
-                        command: '',
-                        val: item.name,
-                        value: item.name,
+                        name: item.name,
+                        value: item.path,
                         raw: item
                     }
                 })
@@ -128,6 +126,11 @@ const resultClick = async (item: any) => {
             console.log('未找到可执行文件')
         }
     }
+    keywords.value = ''
+    resultList.value = []
+    const searchWindow = getWindow('search')
+    console.log('searchWindow', searchWindow)
+    searchWindow?.hide()
 }
 </script>
 <template>

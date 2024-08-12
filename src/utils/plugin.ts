@@ -34,6 +34,7 @@ export const execBinaryPlugin = async (executablePath: string, args: string[] = 
     return new Promise((resolve, reject) => {
         invoke('run_external_program', { executablePath, args })
             .then((result) => {
+                console.log('run_external_program', result)
                 resolve(result)
             })
             .catch((err) => {

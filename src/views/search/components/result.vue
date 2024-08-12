@@ -28,8 +28,7 @@ const handleClick = useDebounceFn((item: Record<string, unknown>) => {
 <template>
     <el-space direction="vertical" :spacer="spacer" fill class="result">
         <div v-for="(item, index) in props.data" :key="index" class="result-item" @click.stop="handleClick(item)">
-            <p>{{ item.command }}</p>
-            <p>{{ item.val }}</p>
+            <p>{{ item.name }}</p>
             <p>{{ item.value }}</p>
         </div>
     </el-space>
