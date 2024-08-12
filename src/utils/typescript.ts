@@ -62,8 +62,8 @@ export interface PluginConfig extends PluginBinaryConfig, PluginModuleConfig, Pl
 
 export interface InstalledPkg {
     name: string
-    version: string
-    publisher: string
+    path: string
+    icon: string
 }
 
 export interface InputFormater {
