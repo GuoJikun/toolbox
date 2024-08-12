@@ -1,8 +1,14 @@
+use std::{
+    fs::{self},
+    path::{Path, PathBuf},
+};
+
+use serde::{Deserialize, Serialize};
+
 extern crate winapi;
 
 use std::ffi::OsString;
 use std::os::windows::ffi::{OsStrExt, OsStringExt};
-use std::path::{Path, PathBuf};
 use std::ptr::null_mut;
 use winapi::shared::guiddef::GUID;
 use winapi::shared::winerror::SUCCEEDED;
@@ -187,4 +193,126 @@ pub fn get_shortcut_info(lnk_path: &str) -> Option<ShortcutInfo> {
         CoUninitialize();
     }
     None
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Installed {
+    pub apps: Vec<App>,
+}
+
+impl Default for Installed {
+    fn default() -> Self {
+        Installed { apps: Vec::new() }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct App {
+    pub name: Option<String>,
+    pub path: Option<PathBuf>,
+    pub icon: Option<PathBuf>,
+}
+
+impl Default for App {
+    fn default() -> Self {
+        App {
+            name: None,
+            path: None,
+            icon: None,
+        }
+    }
+}
+
+impl App {
+    pub fn new(name: Option<String>, path: Option<PathBuf>, icon: Option<PathBuf>) -> Self {
+        App { name, path, icon }
+    }
+}
+// windows 下获取应用程序列表是通过解析开始菜单实现的
+impl Installed {
+    pub fn new() -> Self {
+        let apps = Self::get_apps();
+        Installed { apps }
+    }
+    /// 解析 .lnk 文件的目标路径
+    fn resolve_lnk(lnk_path: &Path) -> Option<App> {
+        // 过滤掉 Windows PowerShell 的快捷方式, 等待 lnk crate 修复
+        if lnk_path
+            .display()
+            .to_string()
+            .contains("Windows PowerShell")
+        {
+            return None;
+        }
+
+        let name: Option<String> = lnk_path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .map(|s| s.to_string());
+
+        let shell_link = get_shortcut_info(lnk_path.as_os_str().to_str().unwrap());
+        match shell_link {
+            Some(shell_link) => {
+                let path = shell_link.target_path().cloned();
+                let icon = shell_link.icon_location();
+                return Option::Some(App::new(name, path, icon.map(PathBuf::from)));
+            }
+            None => {
+                return None;
+            }
+        }
+    }
+    fn traverse_dir(dir_path: &Path, apps: &mut Vec<App>) {
+        if let Ok(entries) = fs::read_dir(dir_path) {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let file_path = entry.path();
+                    if file_path.is_dir() {
+                        // 如果是目录，则递归调用
+                        Self::traverse_dir(&file_path, apps);
+                    } else {
+                        // 检查文件扩展名
+                        if let Some(extension) = file_path.extension() {
+                            if extension == "lnk" {
+                                // 处理 .lnk 文件
+                                match Self::resolve_lnk(&file_path) {
+                                    Some(tmp) => {
+                                        apps.push(tmp);
+                                    }
+                                    None => {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            let entry = fs::read_link(dir_path).expect("Failed to read link");
+            let file_path = entry.as_path();
+            // 检查文件扩展名
+            if let Some(extension) = file_path.extension() {
+                if extension == "lnk" {
+                    // 处理 .lnk 文件
+
+                    match Self::resolve_lnk(&file_path) {
+                        Some(tmp) => {
+                            apps.push(tmp);
+                        }
+                        None => {}
+                    }
+                }
+            }
+        }
+    }
+    fn get_apps() -> Vec<App> {
+        let appdata = std::env::var("APPDATA").expect("Failed to get APPDATA environment variable");
+        let start_menu_path = Path::new(&appdata).join("Microsoft\\Windows\\Start Menu\\Programs");
+        let mut app_paths: Vec<App> = Vec::new();
+        Self::traverse_dir(&start_menu_path, &mut app_paths);
+
+        let common_start_menu_path =
+            Path::new("C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs");
+        Self::traverse_dir(&common_start_menu_path, &mut app_paths);
+        return app_paths;
+    }
 }
