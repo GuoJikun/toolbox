@@ -4,7 +4,7 @@
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use tauri::command;
+use tauri::{command, path::BaseDirectory, AppHandle, Manager};
 use tauri_plugin_cli::CliExt;
 
 // 插件相关
@@ -89,6 +89,24 @@ fn get_installed_list() -> Vec<apps::App> {
     return apps;
 }
 
+#[command]
+fn screenshot_desktop(app: AppHandle) -> Option<String> {
+    let _ = match screenshot_desktop::Screenshot::new() {
+        Ok(result) => {
+            let path = app
+                .path()
+                .resolve("screenshot.png", BaseDirectory::Temp)
+                .unwrap();
+            println!("path: {:?}", path);
+            result.save(&path).unwrap();
+            return Some(path.display().to_string());
+        }
+        Err(_) => {
+            return None;
+        }
+    };
+}
+
 #[cfg(desktop)]
 mod tray;
 
@@ -129,7 +147,8 @@ fn main() {
             dynamic_command,
             add_acl,
             add_capabilities,
-            get_installed_list
+            get_installed_list,
+            screenshot_desktop
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
