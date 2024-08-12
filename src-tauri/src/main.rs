@@ -1,7 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::sync::{Arc, Mutex};
+use std::thread;
 use tauri::command;
 use tauri_plugin_cli::CliExt;
 
@@ -17,15 +19,46 @@ use apps::Installed;
 
 #[command]
 fn run_external_program(executable_path: String, args: Vec<String>) -> Result<String, String> {
-    let output = Command::new(executable_path)
-        .args(&args)
-        .output()
-        .map_err(|e| e.to_string())?;
+    let result = Arc::new(Mutex::new(String::new()));
+    let status = Arc::new(Mutex::new("success".to_string()));
 
-    if output.status.success() {
-        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    let result_clone = Arc::clone(&result);
+    let status_clone = Arc::clone(&status);
+
+    let handle = thread::spawn(move || {
+        let child = Command::new(executable_path)
+            .args(&args)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("Failed to start process");
+
+        let output = child.wait_with_output().expect("Failed to wait on child");
+
+        if output.status.success() {
+            println!("Output: {}", String::from_utf8_lossy(&output.stdout));
+            let mut result = result_clone.lock().unwrap();
+            *result = String::from_utf8_lossy(&output.stdout).to_string();
+            let mut status = status_clone.lock().unwrap();
+            *status = "success".to_string();
+        } else {
+            eprintln!("Error: {}", String::from_utf8_lossy(&output.stderr));
+            let mut result = result_clone.lock().unwrap();
+            *result = String::from_utf8_lossy(&output.stderr).to_string();
+            let mut status = status_clone.lock().unwrap();
+            *status = "error".to_string();
+        }
+    });
+
+    handle.join().expect("Thread panicked");
+
+    let status = status.lock().unwrap();
+    let result = result.lock().unwrap();
+
+    if *status == "success" {
+        Ok(result.clone())
     } else {
-        Err(String::from_utf8_lossy(&output.stderr).to_string())
+        Err(result.clone())
     }
 }
 
