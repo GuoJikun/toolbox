@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { formatPath, runSoftware, getWindow } from '@/utils/index'
 import { execBinaryPlugin, getPluginPath, getPluginOfPrefix, execScriptPlugin, execModulePlugin } from '@/utils/plugin'
 import type { PluginConfig, InputFormater } from '@/utils/typescript'
@@ -10,7 +10,21 @@ import Result from './components/result.vue'
 
 const mainStore = useIndexStore()
 
-const title = 'Search'
+const inputEl = ref<HTMLInputElement>()
+
+onMounted(() => {
+    console.log('search mounted')
+    // 加载完成时给 Window 绑定事件
+    const searchWindow = getWindow('search')
+    console.log('searchWindow', searchWindow)
+    searchWindow?.once('tauri://blur', () => {
+        searchWindow.hide()
+    })
+
+    searchWindow?.listen('tauri://focus', () => {
+        inputEl.value?.focus()
+    })
+})
 
 const keywords = ref<string>('')
 
@@ -110,6 +124,9 @@ const parseInputContent = async (content: InputFormater) => {
 
 const resultClick = async (item: any) => {
     console.log('item', item)
+    if (!['module', 'installedPkg'].includes(item.source)) {
+        return
+    }
     if (item.source === 'module') {
         const pluginConfig = item.raw
         const { main } = pluginConfig
@@ -126,17 +143,15 @@ const resultClick = async (item: any) => {
             console.log('未找到可执行文件')
         }
     }
+    const searchWindow = getWindow('search')
+    searchWindow?.hide()
     keywords.value = ''
     resultList.value = []
-    const searchWindow = getWindow('search')
-    console.log('searchWindow', searchWindow)
-    searchWindow?.hide()
 }
 </script>
 <template>
     <div class="search" data-tauri-drag-region>
-        <h1>{{ title }}</h1>
-        <Search v-model="keywords" @change="parseInputContent" />
+        <Search ref="inputEl" v-model="keywords" @change="parseInputContent" />
 
         <Result :data="resultList" @click="resultClick" />
     </div>

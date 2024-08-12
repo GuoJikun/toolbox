@@ -37,9 +37,6 @@ const handleAfterPermission = () => {
     <div class="home">
         <h1>Home Index</h1>
         <el-space>
-            <router-link to="/setting">设置</router-link>
-            <router-link to="/plugins">插件</router-link>
-
             <el-button @click="handleBeforePermission">添加权限前</el-button>
             <el-button @click="handlePermission">添加权限</el-button>
             <el-button @click="handleAfterPermission">添加权限后</el-button>
