@@ -40,8 +40,9 @@
     "fs:scope-resource-recursive",
     "cli:default",
     "shell:default",
+    "shell:allow-kill",
     {
-      "identifier": "shell:allow-execute",
+      "identifier": "shell:allow-spawn",
       "allow": [
         {
           "args": [
@@ -61,6 +62,18 @@
         }
       ]
     },
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "args": [],
+          "cmd": "",
+          "name": "extract",
+          "sidecar": false
+        }
+      ]
+    },
+    "shell:allow-spawn",
     "fs:scope-resource"
   ]
 }
