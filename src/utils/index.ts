@@ -76,9 +76,8 @@ export const initHttpServer = async () => {
 
 /**执行本机应用程序 */
 export const runSoftware = async (path: string) => {
-    const command = Command.create(path)
-    const output = await command.spawn()
-    // const output = await invoke('run_external_program', { executablePath: path, args: [] })
-
+    // const command = Command.create(path)
+    // const output = await command.execute()
+    const output = await invoke('run_external_program', { executablePath: path, args: [] })
     console.log(output)
 }

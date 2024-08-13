@@ -1,7 +1,7 @@
 import { type WindowOptions } from '@tauri-apps/api/window'
 
-export interface Plugin {
-    logo?: string | URL
+export interface PluginBaseConfig {
+    logo?: string
     id: string
     name: string
     description: string
@@ -9,50 +9,24 @@ export interface Plugin {
     enable?: boolean
     author?: string
     email?: string
+    homepage?: string
+    keywords?: string[]
+    main: string
 }
 
-interface PluginBinaryConfig {
-    id: string
-    name: string
-    main: string
-    version: string
-    description: string
-    logo?: string
-    author?: string
-    email?: string
-    homepage?: string
+interface PluginBinaryConfig extends PluginBaseConfig {
     prefix?: string
 }
 
-interface PluginModuleConfig {
-    id: string
-    name: string
-    main: string
-    version: string
-    description: string
-    logo?: string
-    primissions: string[]
-    author?: string
-    email?: string
-    homepage?: string
-    keywords?: string[]
+interface PluginModuleConfig extends PluginBaseConfig {
     shortcut?: string
+    primissions: string[]
     windowConfig: WindowOptions
 }
 
 export type ScriptEnv = 'node' | 'php' | 'python'
-interface PluginScriptConfig {
-    id: string
-    name: string
-    main: string
+interface PluginScriptConfig extends PluginBaseConfig {
     scriptEnv: ScriptEnv
-    version: string
-    description: string
-    logo?: string
-    author?: string
-    email?: string
-    homepage?: string
-    keywords?: string[]
     prefix?: string
 }
 
