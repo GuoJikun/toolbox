@@ -72,7 +72,7 @@ export const execScriptPlugin = async (env: ScriptEnv, path: string, args: strin
 }
 
 export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) => {
-    await invoke('add_acl')
+    // await invoke('add_acl')
     const { windowConfig = {}, id } = pluginConfig
     const windowLabel = `toolbox-plugin-window-${id}`
     let currentWindow = getWindow(windowLabel)
@@ -87,7 +87,7 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
 
     const windowOuterSize = await currentWindow.outerSize()
     const windowInnerSize = await currentWindow.innerSize()
-    console.log('execModulePlugin window', await currentWindow.outerSize(), await currentWindow.innerSize())
+    console.log('execModulePlugin window', windowOuterSize, windowInnerSize)
     currentWindow.listen('tauri://window-created', () => {
         console.log('tauri://window-created')
     })
@@ -110,6 +110,7 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
     })
 
     console.log('execModulePlugin webview', webview)
+
     currentWindow.show()
 }
 
