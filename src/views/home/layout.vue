@@ -48,6 +48,7 @@ onMounted(async () => {
     background-color: antiquewhite;
     &-main {
         display: flex;
+        height: calc(100vh - 28px);
     }
     &-aside {
         flex: 0 0 40px;

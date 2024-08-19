@@ -32,7 +32,7 @@ const getPlugins = async () => {
 }
 
 const getInstalledPkg = async () => {
-    const installedPkg: InstalledPkg[] = await invoke('get_installed_list')
+    const installedPkg: InstalledPkg[] = await invoke('get_installed_apps')
     return installedPkg.filter((item) => item.name)
 }
 

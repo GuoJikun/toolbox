@@ -5,7 +5,7 @@
   "windows": ["toolbox-plugin-*"],
   "webviews": ["toolbox-plugin-*"],
   "remote": {
-    "urls": ["http://localhost:6543/*"]
+    "urls": ["http://localhost:5173"]
   },
   "permissions": [
     "core:path:default",
