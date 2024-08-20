@@ -1,2 +1,2 @@
 pub mod utils;
-pub use utils::{copy_to, Config};
+pub use utils::{add_capability, generate_capabilities_file};

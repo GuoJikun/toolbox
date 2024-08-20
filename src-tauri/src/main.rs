@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{command, path::BaseDirectory, AppHandle, Manager};
+use tauri::command;
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_cli::CliExt;
 
@@ -14,6 +14,8 @@ use dylib::dynamic_command;
 
 mod command;
 use command::{get_installed_apps, run_external_program, screenshot_desktop};
+
+mod utils;
 
 #[command]
 fn add_acl() {
@@ -44,20 +46,15 @@ fn main() {
             MacosLauncher::LaunchAgent,
             Some(vec![]),
         ))
-        .setup(|app| {
-            #[cfg(all(desktop))]
-            {
-                let handle = app.handle();
-                tray::create_tray(handle)?;
-            }
-            Ok(())
-        })
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_cli::init())
         .setup(|app| {
+            tray::create_tray(app)?;
+            utils::generate_capabilities_file(app)?;
+            utils::add_capability(app);
             match app.cli().matches() {
                 // `matches` here is a Struct with { args, subcommand }.
                 // `args` is `HashMap<String, ArgData>` where `ArgData` is a struct with { value, occurrences }.
