@@ -76,7 +76,6 @@ pub fn generate_capabilities_file(app: &mut App) -> io::Result<()> {
                     continue;
                 }
                 let file_path = PathBuf::from(file);
-                println!("file_path: {:?}", file_path);
 
                 let config = Config::new(&file_path);
                 let config = config.config.as_object().unwrap();
@@ -84,7 +83,6 @@ pub fn generate_capabilities_file(app: &mut App) -> io::Result<()> {
                 let path = dist_path.join(format!("{}.json", id));
                 let _ = match config.get("primission") {
                     Some(permissions) => {
-                        println!("permissions: {:?}", permissions);
                         let content = json!({
                             "identifier": format!("toolbox-plugin-{}", id),
                             "description": format!("Capability for toolbox-plugin-{}", id),
@@ -92,7 +90,6 @@ pub fn generate_capabilities_file(app: &mut App) -> io::Result<()> {
                             "webview": format!("toolbox-plugin-{}-webview", id),
                             "permissions": permissions,
                         });
-                        println!("Writing capability file: {:?}", path);
                         let _ = fs_extra::file::write_all(&path, &content.to_string())
                             .expect("Failed to write capability file");
                     }

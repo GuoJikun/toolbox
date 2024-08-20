@@ -1,7 +1,7 @@
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use tauri::{command, path::BaseDirectory, App as TauriApp, AppHandle, Manager};
+use tauri::{command, path::BaseDirectory, AppHandle, Manager};
 
 #[path = "apps/mod.rs"]
 mod apps;
