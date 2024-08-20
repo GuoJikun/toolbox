@@ -1,10 +1,7 @@
-use serde::Serialize;
-use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use tauri::{command, path::BaseDirectory, AppHandle, Manager};
-use tauri::{webview, window};
+use tauri::{command, path::BaseDirectory, App as TauriApp, AppHandle, Manager};
 
 #[path = "apps/mod.rs"]
 mod apps;
@@ -80,36 +77,4 @@ pub fn run_external_program(executable_path: String, args: Vec<String>) -> Resul
     } else {
         Err(result.clone())
     }
-}
-
-#[command]
-pub fn add_capability(app: AppHandle) {
-    let dir = app
-        .path()
-        .resolve("capabilities", BaseDirectory::Resource)
-        .unwrap();
-
-    let _ = match std::fs::read_dir(dir) {
-        Ok(files) => {
-            for file in files {
-                match file {
-                    Ok(file) => {
-                        let path = file.path();
-                        if path.is_file() {
-                            let file_name = path.file_name().unwrap().to_str().unwrap();
-                            if file_name.ends_with(".json") {
-                                let content = std::fs::read_to_string(&path)
-                                    .expect("Failed to read capability file");
-                                let _ = app.add_capability(&content);
-                            }
-                        }
-                    }
-                    Err(_) => {
-                        continue;
-                    }
-                }
-            }
-        }
-        Err(_) => {}
-    };
 }
