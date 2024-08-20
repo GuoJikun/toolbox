@@ -7,9 +7,6 @@
     "search"
   ],
   "permissions": [
-    "core:path:default",
-    "core:event:default",
-    "core:window:default",
     "core:window:allow-show",
     "core:window:allow-hide",
     "core:window:allow-start-dragging",
@@ -20,13 +17,7 @@
     "core:window:allow-is-visible",
     "core:window:allow-set-focus",
     "core:webview:allow-create-webview",
-    "core:webview:default",
     "core:webview:allow-webview-close",
-    "core:app:default",
-    "core:image:default",
-    "core:resources:default",
-    "core:menu:default",
-    "core:tray:default",
     "shell:allow-open",
     "global-shortcut:allow-is-registered",
     "global-shortcut:allow-register",
