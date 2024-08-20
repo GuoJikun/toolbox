@@ -1,11 +1,13 @@
 use tauri::{
-    menu::{Menu, MenuItem},
+    menu::{MenuBuilder, MenuItem, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager, Runtime,
+    App, Manager,
 };
-pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
-    let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&quit_i])?;
+pub fn create_tray(app: &mut App) -> tauri::Result<()> {
+    let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
+    // let upgrade = MenuItemBuilder::with_id("upgrade", "检查更新").build(app)?;
+    let upgrade = MenuItem::with_id(app, "upgrade", "检查更新", true, None::<&str>)?;
+    let menu = MenuBuilder::new(app).items(&[&upgrade, &quit]).build()?;
 
     let _ = TrayIconBuilder::with_id("tray")
         .icon(app.default_window_icon().unwrap().clone())
@@ -14,6 +16,9 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "quit" => {
                 app.exit(0);
+            }
+            "upgrade" => {
+                println!("Upgrade");
             }
             // Add more events here
             _ => {}

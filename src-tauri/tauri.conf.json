@@ -84,6 +84,7 @@
     "category": "DeveloperTool",
     "resources": {
       "resources/plugins/": "plugins/",
+      "resources/capabilities/": "capabilities/",
       "resources/config/caddy.json": "config/caddy.json"
     },
     "externalBin": [
