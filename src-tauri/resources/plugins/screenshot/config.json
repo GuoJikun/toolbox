@@ -7,7 +7,7 @@
     "keywords": ["screenshot", "截图"],
     "description": "screenshot",
     "version": "0.1.0",
-    "primission": [],
+    "primission": ["core:default"],
     "windowConfig": {
         "fullscreen": true,
         "alwaysOnTop": true,
