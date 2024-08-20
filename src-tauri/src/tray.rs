@@ -5,9 +5,11 @@ use tauri::{
 };
 pub fn create_tray(app: &mut App) -> tauri::Result<()> {
     let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
-    // let upgrade = MenuItemBuilder::with_id("upgrade", "检查更新").build(app)?;
     let upgrade = MenuItem::with_id(app, "upgrade", "检查更新", true, None::<&str>)?;
-    let menu = MenuBuilder::new(app).items(&[&upgrade, &quit]).build()?;
+    let auto_start = MenuItem::with_id(app, "auto_start", "开机自启", true, None::<&str>)?;
+    let menu = MenuBuilder::new(app)
+        .items(&[&auto_start, &upgrade, &quit])
+        .build()?;
 
     let _ = TrayIconBuilder::with_id("tray")
         .icon(app.default_window_icon().unwrap().clone())

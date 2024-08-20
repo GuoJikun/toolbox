@@ -1,9 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::command;
+use serde_json::json;
+
+use tauri::{command, path::BaseDirectory, Manager, Wry};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_cli::CliExt;
+use tauri_plugin_store::{with_store, StoreCollection};
 
 // 插件相关
 mod plugins;
@@ -42,6 +45,7 @@ mod tray;
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             Some(vec![]),
@@ -52,9 +56,46 @@ fn main() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_cli::init())
         .setup(|app| {
+            // 初始化 store
+            let stores = app
+                .handle()
+                .try_state::<StoreCollection<Wry>>()
+                .ok_or("Store not found")?;
+            let path = app
+                .path()
+                .resolve("config/store.bin", BaseDirectory::Resource)?;
+            let _ = with_store(app.handle().clone(), stores, path, |store| {
+                let mut version = utils::get_app_version(app.handle().clone());
+                let _ = match store.get("version".to_string()) {
+                    Some(tmp) => version = tmp.to_string(),
+                    None => {
+                        store.insert("version".to_string(), json!(version))?;
+                    }
+                };
+                println!("store version: {}", version);
+                // Note that values must be serde_json::Value instances,
+                // otherwise, they will not be compatible with the JavaScript bindings.
+                store.insert("some-key".to_string(), json!({ "value": 5 }))?;
+
+                // Get a value from the store.
+                let value = store
+                    .get("some-key")
+                    .expect("Failed to get value from store");
+                println!("{}", value); // {"value":5}
+
+                // You can manually save the store after making changes.
+                // Otherwise, it will save upon graceful exit as described above.
+                store.save()?;
+
+                Ok(())
+            });
+            // 创建托盘
             tray::create_tray(app)?;
+            // 生成插件的权限文件
             utils::generate_capabilities_file(app)?;
+            // 添加插件的权限
             utils::add_capability(app);
+            // cli
             match app.cli().matches() {
                 // `matches` here is a Struct with { args, subcommand }.
                 // `args` is `HashMap<String, ArgData>` where `ArgData` is a struct with { value, occurrences }.
