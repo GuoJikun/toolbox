@@ -5,7 +5,8 @@ use std::fs;
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
-use tauri::{path::BaseDirectory, App, Manager};
+use tauri::{path::BaseDirectory, App, AppHandle, Manager};
+use tauri_plugin_shell::ShellExt;
 use walkdir::WalkDir;
 
 fn copy_to(src: &Path, dst: &Path) -> io::Result<()> {
@@ -126,4 +127,43 @@ pub fn add_capability(app: &mut App) {
         }
         Err(_) => {}
     };
+}
+
+// 获取应用版本号的函数
+pub fn get_app_version(app: AppHandle) -> String {
+    // 获取 tauri.config.json 配置
+    let conf = app.package_info();
+    // 获取版本号
+    let version = conf.version.clone();
+
+    version.to_string()
+}
+
+pub fn init_local_http_server(app: &mut App) {
+    let binding = app
+        .path()
+        .resolve("plugins", BaseDirectory::Resource)
+        .unwrap();
+
+    let static_path = binding.to_str().unwrap();
+    let shell = app.shell();
+    let output = tauri::async_runtime::block_on(async move {
+        shell
+            .command("binaries/caddy")
+            .args(&[
+                "file-server",
+                "--listen",
+                "localhost:6543",
+                "--root",
+                static_path,
+            ])
+            .output()
+            .await
+            .unwrap()
+    });
+    if output.status.success() {
+        println!("Result: {:?}", String::from_utf8(output.stdout));
+    } else {
+        println!("Exit with code: {}", output.status.code().unwrap());
+    }
 }
