@@ -4,9 +4,9 @@
 
 插件分为三类：
 
--   独立的可执行程序
--   脚本（需要声明执行脚本的程序）
--   独立窗口类（入口文件是一个 html）
+- 独立的可执行程序
+- 脚本（需要声明执行脚本的程序）
+- 独立窗口类（入口文件是一个 html）
 
 ## 插件开发
 
@@ -25,6 +25,10 @@
 ### 独立窗口类
 
 在插件的 `config.json` 中 `type` 字段对应的是 `module`，入口是一个 html 类型的文件，在配置的文件的 `main` 中声明
+
+> 所有窗口都具有的权限
+>
+> `["core:path:default", "core:event:default", "core:window:default", "core:app:default", "core:image:default", "core:resources:default", "core:menu:default", "core:tray:default"]`
 
 ## 插件安装
 
