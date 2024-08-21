@@ -1,6 +1,6 @@
 import { Window, type WindowLabel } from '@tauri-apps/api/window'
 
-export const getWindow = (label: WindowLabel) => {
-    const windows = Window.getAll()
-    return windows.find((window) => window.label === label)
+export const getWindow = async (label: WindowLabel) => {
+    const windows = await Window.getByLabel(label)
+    return windows
 }

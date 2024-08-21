@@ -12,10 +12,10 @@ const mainStore = useIndexStore()
 
 const inputEl = ref<HTMLInputElement>()
 
-onMounted(() => {
+onMounted(async () => {
     console.log('search mounted')
     // 加载完成时给 Window 绑定事件
-    const searchWindow = getWindow('search')
+    const searchWindow = await getWindow('search')
     console.log('searchWindow', searchWindow)
     searchWindow?.once('tauri://blur', () => {
         searchWindow.hide()
@@ -145,7 +145,7 @@ const resultClick = async (item: any) => {
             console.log('未找到可执行文件')
         }
     }
-    const searchWindow = getWindow('search')
+    const searchWindow = await getWindow('search')
     searchWindow?.hide()
     keywords.value = ''
     resultList.value = []

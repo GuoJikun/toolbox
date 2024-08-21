@@ -11,12 +11,14 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import '@/assets/css/global.scss'
 import '@icon-park/vue-next/styles/index.css'
 
-import { registerShortcut, getWindow, initHttpServer } from '@/utils/index'
+import { registerShortcut, getWindow } from '@/utils/index'
 
 async function addShortcut() {
     const shortcut = 'Alt+Space'
     registerShortcut(shortcut, async () => {
-        const label = getWindow('search')
+        console.log('Shortcut triggered')
+        const label = await getWindow('search')
+        console.log('label', label)
         if (label) {
             if (await label.isVisible()) {
                 label.show()
@@ -29,7 +31,6 @@ async function addShortcut() {
 }
 
 addShortcut()
-initHttpServer()
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)

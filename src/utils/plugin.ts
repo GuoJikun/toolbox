@@ -75,7 +75,7 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
     // await invoke('add_acl')
     const { windowConfig = {}, id } = pluginConfig
     const windowLabel = `toolbox-plugin-window-${id}`
-    let currentWindow = getWindow(windowLabel)
+    let currentWindow = await getWindow(windowLabel)
     if (!currentWindow) {
         currentWindow = new Window(windowLabel, {
             center: windowConfig.fullscreen ? false : true,

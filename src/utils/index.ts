@@ -6,9 +6,9 @@ import { invoke } from '@tauri-apps/api/core'
 import { type } from '@/utils/utils'
 import { Child } from '@tauri-apps/plugin-shell'
 
-export const getWindow = (label: WindowLabel) => {
-    const windows = Window.getAll()
-    return windows.find((window) => window.label === label)
+export const getWindow = async (label: WindowLabel) => {
+    const windows = await Window.getByLabel(label)
+    return windows
 }
 
 export const registerShortcut = async (shortcut: string, callback: () => void) => {
@@ -58,13 +58,7 @@ export const initHttpServer = async () => {
     }
     const staticDirPath = await resolveResource('plugins')
     console.log('staticDirPath', staticDirPath)
-    const command = Command.sidecar('binaries/caddy', [
-        'file-server',
-        '--listen',
-        'localhost:6543',
-        '--root',
-        staticDirPath
-    ])
+    const command = Command.sidecar('caddy', ['file-server', '--listen', 'localhost:6543', '--root', staticDirPath])
     const output = await command.spawn()
 
     if (type(output.pid) === 'number') {
