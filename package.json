@@ -13,7 +13,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "@icon-park/vue-next": "^1.4.2",
-    "@tauri-apps/api": "2.0.0-rc.0",
+    "@tauri-apps/api": "2.0.0-rc.2",
     "@tauri-apps/plugin-autostart": "2.0.0-rc.0",
     "@tauri-apps/plugin-cli": "2.0.0-rc.0",
     "@tauri-apps/plugin-deep-link": "2.0.0-rc.0",
@@ -22,28 +22,28 @@
     "@tauri-apps/plugin-global-shortcut": "2.0.0-rc.0",
     "@tauri-apps/plugin-shell": "2.0.0-rc.0",
     "@tauri-apps/plugin-store": "2.0.0-rc.0",
-    "@vueuse/core": "^10.11.0",
-    "element-plus": "^2.7.7",
-    "pinia": "^2.1.7",
+    "@vueuse/core": "^10.11.1",
+    "element-plus": "^2.8.0",
+    "pinia": "^2.2.2",
     "pinia-plugin-persistedstate": "^3.2.1",
-    "vue": "^3.4.33",
-    "vue-router": "^4.4.0"
+    "vue": "^3.4.38",
+    "vue-router": "^4.4.3"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "2.0.0-rc.1",
-    "@vitejs/plugin-vue": "^5.0.5",
-    "@vitejs/plugin-vue-jsx": "^4.0.0",
+    "@tauri-apps/cli": "2.0.0-rc.6",
+    "@vitejs/plugin-vue": "^5.1.2",
+    "@vitejs/plugin-vue-jsx": "^4.0.1",
     "sass": "^1.77.8",
-    "typescript": "^5.5.3",
-    "vite": "^5.3.4",
-    "vite-plugin-vue-devtools": "^7.3.7",
-    "vue-tsc": "^2.0.28"
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "vite-plugin-vue-devtools": "^7.3.8",
+    "vue-tsc": "^2.0.29"
   },
   "volta": {
     "node": "20.15.0",
     "pnpm": "9.4.0"
   },
-  "packageManager": "pnpm@9.6.0",
+  "packageManager": "pnpm@9.7.1",
   "engines": {
     "node": "20.15.0",
     "pnpm": "9.4.0"
