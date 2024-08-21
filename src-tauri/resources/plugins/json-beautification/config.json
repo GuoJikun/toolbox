@@ -1,10 +1,14 @@
 {
-    "id": "plugin-b",
+    "id": "json-beautification",
     "name": "JSON 美化",
     "main": "index.html",
-    "primissions": [],
+    "primission": [
+        "dialog:deny-message"
+    ],
     "keywords": [
-        "json"
+        "json",
+        "美化",
+        "工具"
     ],
     "description": "json 美化工具",
     "version": "1.1.0",

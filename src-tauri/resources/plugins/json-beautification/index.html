@@ -11,9 +11,8 @@
 </body>
 <script>
 document.querySelector("#test").addEventListener('click', async () => {
-    const curWindow = await __TAURI__.window.getCurrentWindow()
-    console.log(curWindow)
-    console.log(await curWindow.isFullscreen()) 
+    const {message} = window.__TAURI_PLUGIN_DIALOG__
+    await message('File not found', { title: 'Tauri', kind: 'error' });
 })
 </script>
 </html>

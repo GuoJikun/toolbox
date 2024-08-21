@@ -74,7 +74,7 @@ export const execScriptPlugin = async (env: ScriptEnv, path: string, args: strin
 export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) => {
     // await invoke('add_acl')
     const { windowConfig = {}, id } = pluginConfig
-    const windowLabel = `toolbox-plugin-window-${id}`
+    const windowLabel = `toolbox-plugin-${id}-window`
     let currentWindow = await getWindow(windowLabel)
     if (!currentWindow) {
         currentWindow = new Window(windowLabel, {
@@ -91,7 +91,7 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
     currentWindow.listen('tauri://window-created', () => {
         console.log('tauri://window-created')
     })
-    const webviewLabel = `toolbox-plugin-webview-${id}`
+    const webviewLabel = `toolbox-plugin-${id}-webview`
     const webviewOption: WebviewOptions = {
         url: url,
         width: windowConfig.fullscreen ? windowOuterSize.width : windowInnerSize.width,
