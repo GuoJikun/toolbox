@@ -7,6 +7,7 @@
     "search"
   ],
   "permissions": [
+    "core:window:allow-get-all-windows",
     "core:window:allow-show",
     "core:window:allow-hide",
     "core:window:allow-start-dragging",
@@ -47,8 +48,8 @@
               "validator": ".*"
             }
           ],
-          "cmd": "",
-          "name": "binaries/caddy",
+          "cmd": "caddy",
+          "name": "caddy",
           "sidecar": true
         }
       ]

@@ -44,6 +44,7 @@ fn add_capabilities(window: String, webview: String, permissions: Vec<String>) {
 mod tray;
 
 fn main() {
+    utils::kill_server_by_name("caddy");
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(
@@ -61,10 +62,11 @@ fn main() {
                 .handle()
                 .try_state::<StoreCollection<Wry>>()
                 .ok_or("Store not found")?;
-            let path = app
+            let store_path = app
                 .path()
                 .resolve("config/store.bin", BaseDirectory::Resource)?;
-            let _ = with_store(app.handle().clone(), stores, path, |store| {
+            let _ = with_store(app.handle().clone(), stores, store_path, |store| {
+                // 获取版本信息，以便初始化一些参数
                 let mut version = utils::get_app_version(app.handle().clone());
                 let _ = match store.get("version".to_string()) {
                     Some(tmp) => version = tmp.to_string(),
@@ -73,18 +75,20 @@ fn main() {
                     }
                 };
                 println!("store version: {}", version);
-                // Note that values must be serde_json::Value instances,
-                // otherwise, they will not be compatible with the JavaScript bindings.
-                store.insert("some-key".to_string(), json!({ "value": 5 }))?;
+                let _ = match store.get("local_http_server_pid".to_string()) {
+                    Some(tmp) => {
+                        let pid: u32 = tmp.as_u64().unwrap() as u32;
+                        utils::kill_local_http_server(app.handle().clone(), pid);
+                        // 初始化本地 HTTP 服务
+                        let pid = utils::init_local_http_server(app.handle().clone());
+                        store.insert("local_http_server_pid".to_string(), json!(pid))?;
+                    }
+                    None => {
+                        let pid = utils::init_local_http_server(app.handle().clone());
+                        store.insert("local_http_server_pid".to_string(), json!(pid))?;
+                    }
+                };
 
-                // Get a value from the store.
-                let value = store
-                    .get("some-key")
-                    .expect("Failed to get value from store");
-                println!("{}", value); // {"value":5}
-
-                // You can manually save the store after making changes.
-                // Otherwise, it will save upon graceful exit as described above.
                 store.save()?;
 
                 Ok(())

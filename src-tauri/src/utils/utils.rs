@@ -1,12 +1,14 @@
 use serde::Deserialize;
 use serde_json;
 use serde_json::json;
-use std::fs;
-use std::io;
-use std::path::Path;
-use std::path::PathBuf;
+use std::{
+    env, fs, io,
+    path::{Path, PathBuf},
+    process::Command as StdCommand,
+};
 use tauri::{path::BaseDirectory, App, AppHandle, Manager};
-use tauri_plugin_shell::ShellExt;
+
+use tauri_plugin_shell::{process::Command, ShellExt};
 use walkdir::WalkDir;
 
 fn copy_to(src: &Path, dst: &Path) -> io::Result<()> {
@@ -139,7 +141,7 @@ pub fn get_app_version(app: AppHandle) -> String {
     version.to_string()
 }
 
-pub fn init_local_http_server(app: &mut App) {
+pub fn init_local_http_server(app: AppHandle) -> u32 {
     let binding = app
         .path()
         .resolve("plugins", BaseDirectory::Resource)
@@ -147,23 +149,101 @@ pub fn init_local_http_server(app: &mut App) {
 
     let static_path = binding.to_str().unwrap();
     let shell = app.shell();
-    let output = tauri::async_runtime::block_on(async move {
-        shell
-            .command("binaries/caddy")
-            .args(&[
-                "file-server",
-                "--listen",
-                "localhost:6543",
-                "--root",
-                static_path,
-            ])
-            .output()
-            .await
-            .unwrap()
-    });
-    if output.status.success() {
-        println!("Result: {:?}", String::from_utf8(output.stdout));
-    } else {
-        println!("Exit with code: {}", output.status.code().unwrap());
+    let caddy: Command = shell.sidecar("caddy").unwrap();
+    let args = vec![
+        "file-server",
+        "--listen",
+        "localhost:6543",
+        "--root",
+        static_path,
+    ];
+    let _ = match caddy.args(args).spawn() {
+        Ok((_rx, child)) => {
+            let pid = child.pid();
+            return pid;
+        }
+        Err(_) => 0,
+    };
+    0
+}
+
+pub fn kill_local_http_server(app: AppHandle, pid: u32) {
+    let shell = app.shell();
+    let os = env::consts::OS;
+
+    match os {
+        "windows" => {
+            shell
+                .command("taskkill")
+                .arg("/F")
+                .arg("/PID")
+                .arg(pid.to_string())
+                .spawn()
+                .unwrap();
+        }
+        "linux" | "macos" => {
+            shell
+                .command("kill")
+                .arg("-9")
+                .arg(pid.to_string())
+                .spawn()
+                .unwrap();
+        }
+        _ => {
+            panic!("Unsupported operating system");
+        }
+    }
+}
+
+pub fn kill_server_by_name(process_name: &str) {
+    let os = env::consts::OS;
+
+    match os {
+        "windows" => {
+            // 获取 PID
+            let output = StdCommand::new("tasklist")
+                .arg("/FI")
+                .arg(format!("IMAGENAME eq {}", process_name))
+                .output()
+                .expect("Failed to execute command");
+
+            let output_str = String::from_utf8_lossy(&output.stdout);
+            for line in output_str.lines() {
+                if line.contains(process_name) {
+                    let parts: Vec<&str> = line.split_whitespace().collect();
+                    if let Some(pid) = parts.get(1) {
+                        let pid: u32 = pid.parse().expect("Failed to parse PID");
+                        // 杀死进程
+                        StdCommand::new("taskkill")
+                            .arg("/F")
+                            .arg("/PID")
+                            .arg(pid.to_string())
+                            .spawn()
+                            .expect("Failed to execute command");
+                    }
+                }
+            }
+        }
+        "linux" | "macos" => {
+            // 获取 PID
+            let output = StdCommand::new("pgrep")
+                .arg(process_name)
+                .output()
+                .expect("Failed to execute command");
+
+            let output_str = String::from_utf8_lossy(&output.stdout);
+            for line in output_str.lines() {
+                let pid: u32 = line.parse().expect("Failed to parse PID");
+                // 杀死进程
+                StdCommand::new("kill")
+                    .arg("-9")
+                    .arg(pid.to_string())
+                    .spawn()
+                    .expect("Failed to execute command");
+            }
+        }
+        _ => {
+            panic!("Unsupported operating system");
+        }
     }
 }
