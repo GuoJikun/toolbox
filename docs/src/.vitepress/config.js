@@ -17,7 +17,10 @@ const sidebar = [
 export default defineConfig({
     title: 'Toolbox',
     lang: 'zh-CN',
+
     lastUpdated: true,
+    metaChunk: true,
+
     themeConfig: {
         nav: [{ text: '插件', link: '/plugin/' }],
         sidebar,
@@ -29,7 +32,13 @@ export default defineConfig({
             prev: '上一页',
             next: '下一页'
         },
-        lastUpdatedText: '最后更新时间',
+        lastUpdated: {
+            text: '最后更新于',
+            formatOptions: {
+                dateStyle: 'short',
+                timeStyle: 'medium'
+            }
+        },
         search: {
             provider: 'local'
         },
