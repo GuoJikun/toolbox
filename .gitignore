@@ -27,4 +27,4 @@ dist-ssr
 target
 
 # docs
-docs/src/.vitepress/cache
+docs/.vitepress/cache

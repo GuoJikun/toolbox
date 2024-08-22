@@ -47,6 +47,9 @@
     "keywords": ["screenshot", "截图"],
     "description": "screenshot",
     "version": "0.1.0",
+    "author": "string",
+    "email": "string",
+    "homepage": "string",
     "primission": ["core:default"],
     "windowConfig": {
         "fullscreen": true,
@@ -65,3 +68,49 @@
 用来注明插件的类型，分为三类，分别是 `binary`、`script`、`module`
 
 ### id
+
+插件的唯一标识，全局唯一，只支持英文、数字、_、-且不能数字开头
+
+### name
+
+插件显示的名称（可以重复）
+
+### main
+
+插件的入口点，路径是相对于自己的插件目录的。
+
+### keywords
+
+关键词，在搜索界面搜索用
+
+### description
+
+插件描述
+
+### version
+
+插件版本
+
+### author
+
+插件作者
+
+### email
+
+插件作者的邮箱
+
+### homepage
+
+插件的地址
+
+### primission
+
+插件的权限，用来生成 [`tauri`](https://beta.tauri.app/start/) 中 [`capabilities`](<https://beta.tauri.app/security/capabilities/>) 文件
+
+### windowConfig
+
+:::warning 注意
+仅对 `type: "moudle"` 类型的插件有效
+:::
+
+窗口配置，具体内容请[参考](https://beta.tauri.app/reference/config/#windowconfig)
