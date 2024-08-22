@@ -41,7 +41,6 @@ onMounted(async () => {
     const plugins = await getPlugins()
     mainStore.updatePlugins(plugins)
     const installedPkg = await getInstalledPkg()
-    console.log('installedPkg', installedPkg)
     mainStore.updateInstalledPkg(installedPkg)
 })
 </script>
