@@ -4,10 +4,15 @@
     "name": "截图",
     "main": "index.html",
     "devMain": "http://localhost:5173/",
-    "keywords": ["screenshot", "截图"],
+    "keywords": [
+        "screenshot",
+        "截图"
+    ],
     "description": "screenshot",
     "version": "0.1.0",
-    "primission": ["core:default"],
+    "primissions": [
+        "core:image:allow-from-bytes"
+    ],
     "windowConfig": {
         "fullscreen": true,
         "alwaysOnTop": true,

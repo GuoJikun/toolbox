@@ -84,13 +84,13 @@ pub fn generate_capabilities_file(app: &mut App) -> io::Result<()> {
                 let config = config.config.as_object().unwrap();
                 let id = config.get("id").unwrap().as_str().unwrap();
                 let path = dist_path.join(format!("{}.json", id));
-                let _ = match config.get("primission") {
+                let _ = match config.get("primissions") {
                     Some(permissions) => {
                         let content = json!({
                             "identifier": format!("toolbox-plugin-{}", id),
                             "description": format!("Capability for toolbox-plugin-{}", id),
-                            "window": format!("toolbox-plugin-{}-window", id),
-                            "webview": format!("toolbox-plugin-{}-webview", id),
+                            "windows": vec![format!("toolbox-plugin-{}-window", id)],
+                            "webviews": vec![format!("toolbox-plugin-{}-webview", id)],
                             "permissions": permissions,
                         });
                         let _ = fs_extra::file::write_all(&path, &content.to_string())

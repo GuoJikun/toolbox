@@ -22,6 +22,8 @@
         "core:image:default",
         "core:resources:default",
         "core:menu:default",
-        "core:tray:default"
+        "core:tray:default",
+        "fs:scope-temp",
+        "fs:scope-temp-index"
     ]
 }

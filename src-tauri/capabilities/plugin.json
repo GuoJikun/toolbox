@@ -10,7 +10,8 @@
   ],
   "remote": {
     "urls": [
-      "http://localhost:6543"
+      "http://localhost:6543",
+      "http://localhost:5173"
     ]
   },
   "permissions": [
@@ -22,17 +23,9 @@
     "core:window:allow-create",
     "core:window:allow-center",
     "core:webview:allow-create-webview",
-    "core:menu:default",
-    "core:tray:default",
-    "shell:allow-open",
-    "global-shortcut:allow-is-registered",
-    "global-shortcut:allow-register",
-    "global-shortcut:allow-unregister",
+    "shell:default",
+    "global-shortcut:default",
     "dialog:default",
-    "fs:default",
-    "fs:allow-home-read",
-    "fs:allow-home-write",
-    "fs:allow-exists",
-    "fs:scope-home-recursive"
+    "fs:default"
   ]
 }
