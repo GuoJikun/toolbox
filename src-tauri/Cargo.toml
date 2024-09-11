@@ -2,7 +2,7 @@
 name = "toolbox"
 version = "0.1.0"
 description = "toolbox"
-authors = ["you"]
+authors = ["GuoJiKun <guojikun486546@163.com>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
