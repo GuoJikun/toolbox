@@ -55,6 +55,7 @@ fn run_script(command: &str, script: String, args: Vec<String>) -> Result<String
 const HEADER: &[u8; 4] = b"PLUG"; // 自定义文件头
 pub struct Tools;
 
+#[allow(dead_code)]
 impl Tools {
     pub fn create(plugin_data_path: &str, plugin_package_path: &str) -> io::Result<()> {
         // 读取插件数据

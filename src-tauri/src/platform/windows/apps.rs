@@ -37,6 +37,7 @@ pub struct ShortcutInfo {
     pub icon_index: i32,
 }
 
+#[allow(dead_code)]
 impl ShortcutInfo {
     pub fn target_path(&self) -> Option<&PathBuf> {
         self.target_path.as_ref()

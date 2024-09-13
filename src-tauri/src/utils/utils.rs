@@ -11,6 +11,7 @@ use tauri::{path::BaseDirectory, App, AppHandle, Manager};
 use tauri_plugin_shell::{process::Command, ShellExt};
 use walkdir::WalkDir;
 
+#[allow(dead_code)]
 fn copy_to(src: &Path, dst: &Path) -> io::Result<()> {
     if !dst.exists() {
         fs::create_dir_all(dst)?;
@@ -246,4 +247,10 @@ pub fn kill_server_by_name(process_name: &str) {
             panic!("Unsupported operating system");
         }
     }
+}
+
+#[allow(dead_code)]
+pub fn print_current_time() {
+    let now = chrono::Local::now();
+    println!("Current time: {}", now.format("%Y-%m-%d %H:%M:%S%.3f %z"));
 }
