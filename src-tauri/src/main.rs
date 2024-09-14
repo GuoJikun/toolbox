@@ -19,6 +19,7 @@ mod command;
 use command::{get_installed_apps, run_external_program, screenshot_desktop};
 
 mod utils;
+use utils::capability;
 
 #[command]
 fn add_acl() {
@@ -96,9 +97,9 @@ fn main() {
             // 创建托盘
             tray::create_tray(app)?;
             // 生成插件的权限文件
-            utils::generate_capabilities_file(app)?;
+            capability::generate(app)?;
             // 添加插件的权限
-            utils::add_capability(app);
+            capability::add(app);
             // cli
             match app.cli().matches() {
                 // `matches` here is a Struct with { args, subcommand }.
