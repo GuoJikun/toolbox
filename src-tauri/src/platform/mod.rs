@@ -10,4 +10,7 @@ pub mod platform;
 #[path = "macos/mod.rs"]
 pub mod platform;
 
-pub use platform::{App, Installed, Screenshot};
+#[allow(unused)]
+pub use platform::{
+    cleanup_preview_file, init_preview_file, App, Installed, PreviewFile, Screenshot,
+};
