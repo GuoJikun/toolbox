@@ -1,21 +1,20 @@
 use std::{ffi::OsString, os::windows::ffi::OsStringExt, ptr::null_mut};
+use tauri::{AppHandle, Manager};
 use windows::{
-    core::{Interface, PWSTR},
+    core::{Interface, GUID, PWSTR, VARIANT},
     Win32::{
         Foundation::{HWND, LPARAM, LRESULT, WPARAM},
         System::Com::{
             CoCreateInstance, CoInitializeEx, CoTaskMemFree, CoUninitialize, IDispatch, CLSCTX_ALL,
-            CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED,
+            CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED, COINIT_DISABLE_OLE1DDE,
         },
         UI::{
             Input::KeyboardAndMouse,
             Shell::{
-                CLSID_ShellWindows,
                 Common::{ITEMIDLIST, STRRET},
                 IEnumIDList, IInitializeWithItem, IPreviewHandler, IShellBrowser, IShellFolder,
                 IShellItem, IShellView, IShellWindows, SHCreateItemFromParsingName,
-                SHGetDesktopFolder, SHCONTF_FOLDERS, SHCONTF_INCLUDEHIDDEN, SHCONTF_NONFOLDERS,
-                SHGDN_FORPARSING, SVGIO_SELECTION,
+                SHGetDesktopFolder, SHGDN_FORPARSING, SVGIO_SELECTION,
             },
             WindowsAndMessaging,
         },
@@ -26,6 +25,7 @@ use windows::{
 pub struct PreviewFile {
     selected_file: Option<String>,                   // 存储选中的文件路径
     hook_handle: Option<WindowsAndMessaging::HHOOK>, // 钩子的句柄
+    app_handle: Option<AppHandle>,
 }
 
 #[allow(dead_code)]
@@ -34,6 +34,7 @@ impl PreviewFile {
         Self {
             selected_file: None,
             hook_handle: None,
+            app_handle: None,
         }
     }
 
@@ -72,20 +73,21 @@ impl PreviewFile {
         if vk_code == KeyboardAndMouse::VK_SPACE.0 as u32 {
             Self::get_selected_file();
             println!(
-                "selected_file is {:?} in PrviewFile Struct",
+                "selected_file is {:?} in PreviewFile Struct",
                 &self.selected_file()
             );
             if let Some(ref file_path) = self.selected_file {
                 println!("file path is {:?}", file_path);
-                self.preview_file(file_path);
+                let target_window = self
+                    .app_handle
+                    .clone()
+                    .unwrap()
+                    .get_webview_window("previewFile")
+                    .unwrap();
+                let target_hwnd = target_window.hwnd().unwrap();
+                let _ = Self::preview_file(file_path, target_hwnd);
             }
         }
-    }
-
-    // 文件预览逻辑
-    fn preview_file(&self, file_path: &str) {
-        println!("Previewing file: {}", file_path);
-        // 调用 IFilePreviewHandler 或其他预览逻辑
     }
 
     // 全局键盘钩子的回调函数
@@ -104,7 +106,7 @@ impl PreviewFile {
     fn get_selected_file() -> Option<String> {
         unsafe {
             let hwnd = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
-            println!("当前窗口的 HWND {:?}", hwnd);
+            println!("Current active Window of HWND is {:?}", hwnd);
             let mut class_name = [0u16; 256];
             WindowsAndMessaging::GetClassNameW(hwnd, &mut class_name);
 
@@ -122,56 +124,74 @@ impl PreviewFile {
         }
         None
     }
+    fn check_interface(dispatch: &IDispatch, interface_guid: &GUID) -> bool {
+        unsafe {
+            // 获取类型信息的数量
+            let count = dispatch.GetTypeInfoCount().unwrap_or(0);
+            for i in 0..count {
+                let type_info = dispatch.GetTypeInfo(i, 1);
+                if type_info.is_ok() {
+                    let type_attr = type_info.unwrap().GetTypeAttr();
+                    if type_attr.is_ok() {
+                        let type_attr = type_attr.unwrap();
 
+                        // 检查是否包含特定接口的 GUID
+                        if (*type_attr).guid == *interface_guid {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        false
+    }
     fn get_shell_view(hwnd: HWND) -> Option<IShellView> {
+        const CLSID_SHELL_WINDOWS: GUID = GUID::from_u128(0x9BA05972_F6A8_11CF_A442_00A0C90A8F39);
         unsafe {
             // 初始化 COM 库
-            let com = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
-
+            let com = CoInitializeEx(None, COINIT_DISABLE_OLE1DDE);
             if com.is_err() {
                 return None;
             }
 
-            let hr = CoCreateInstance(&CLSID_ShellWindows, None, CLSCTX_ALL);
-
+            let hr = CoCreateInstance(&CLSID_SHELL_WINDOWS, None, CLSCTX_ALL);
             if hr.is_err() {
                 CoUninitialize(); // 清理 COM
                 return None; // 创建 IShellWindows 失败
             }
 
             let shell_windows: IShellWindows = hr.unwrap();
-
             let count = shell_windows.Count().unwrap_or(0);
             let mut found_shell_view = None;
 
             for i in 0..count {
-                let item = shell_windows.Item(i.into());
+                let index = VARIANT::from(i);
+                let item = shell_windows.Item(&index);
+
                 if item.is_ok() {
-                    let shell_browser: *mut IShellBrowser = null_mut();
-                    if item.cast(&shell_browser).is_ok() {
-                        let hwnd_browser = (*shell_browser).GetWindow();
-                        if hwnd_browser == hwnd {
-                            let mut shell_view: *mut IShellView = null_mut();
-                            if (*shell_browser)
-                                .QueryActiveShellView(&mut shell_view)
-                                .is_ok()
-                            {
-                                found_shell_view = Some(shell_view); // 找到 IShellView
-                                break; // 找到后可以退出循环
+                    let dispatch = item.unwrap();
+                    let shell_browser = dispatch.cast::<IShellBrowser>();
+                    match shell_browser {
+                        Ok(shell_browser) => {
+                            let hwnd_browser = shell_browser.GetWindow();
+                            if hwnd_browser.unwrap() == hwnd {
+                                let shell_view = shell_browser.QueryActiveShellView();
+                                if shell_view.is_ok() {
+                                    found_shell_view = Some(shell_view.unwrap());
+                                    break;
+                                }
                             }
                         }
+                        Err(e) => {
+                            println!("Failed to cast IShellBrowser, Err info {:?}", e);
+                        }
                     }
-                    // 释放 IDispatch 接口
-                    (*item).Release();
                 }
             }
-
-            // 释放 IShellWindows 接口
-            (*shell_windows).Release();
             // 清理 COM
             CoUninitialize();
-
-            found_shell_view // 返回找到的 IShellView 或 None
+            // 返回找到的 IShellView 或 None
+            found_shell_view
         }
     }
 
@@ -188,12 +208,11 @@ impl PreviewFile {
             }
 
             match strret.uType {
-                strret_type_str => {
+                _strret_type_str => {
                     let p_str = &strret.Anonymous.cStr as *const _ as *const u16;
                     let wide_str = std::slice::from_raw_parts(p_str, strret.uType as usize / 2);
                     Some(OsString::from_wide(wide_str).to_string_lossy().into_owned())
-                }
-                _ => None,
+                } // _ => None,
             }
         }
     }
@@ -208,7 +227,6 @@ impl PreviewFile {
             }
 
             let shell_folder = SHGetDesktopFolder();
-
             if shell_folder.is_err() {
                 return None;
             }
@@ -248,49 +266,48 @@ impl PreviewFile {
     pub fn selected_file(&self) -> Option<&String> {
         self.selected_file.as_ref()
     }
-    // pub fn preview_file(file_path: &str, hwnd: HWND) -> windows::core::Result<()> {
-    //     println!("Previewing file: {}", file_path);
+    pub fn preview_file(file_path: &str, hwnd: HWND) -> windows::core::Result<()> {
+        println!("Previewing file: {}", file_path);
 
-    //     unsafe {
-    //         // 初始化 COM
-    //         let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        unsafe {
+            // 初始化 COM
+            let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
 
-    //         // 将文件路径转为宽字符串（Windows API 要求）
-    //         let path: PWSTR = PWSTR(file_path.encode_utf16().collect::<Vec<u16>>().as_mut_ptr());
+            // 将文件路径转为宽字符串（Windows API 要求）
+            let path: PWSTR = PWSTR(file_path.encode_utf16().collect::<Vec<u16>>().as_mut_ptr());
 
-    //         // 创建文件的 ShellItem
-    //         // let mut shell_item: = None;
-    //         let shell_item: IShellItem = SHCreateItemFromParsingName(path, None)?;
+            // 创建文件的 ShellItem
+            let shell_item: IShellItem = SHCreateItemFromParsingName(path, None)?;
 
-    //         // 获取文件的预览处理器
-    //         // let mut preview_handler: Option<IPreviewHandler> = None;
-    //         let preview_handler: Result<IPreviewHandler, windows::core::Error> =
-    //             CoCreateInstance(&IPreviewHandler::IID, None, CLSCTX_INPROC_SERVER);
+            // 获取文件的预览处理器
+            // let mut preview_handler: Option<IPreviewHandler> = None;
+            let preview_handler: Result<IPreviewHandler, windows::core::Error> =
+                CoCreateInstance(&IPreviewHandler::IID, None, CLSCTX_INPROC_SERVER);
 
-    //         if let Ok(handler) = preview_handler {
-    //             // 初始化文件
-    //             let initialize_with_file = handler.cast::<IInitializeWithItem>()?;
-    //             let _ = initialize_with_file.Initialize(&shell_item, 0);
-    //             // 将预览窗口绑定到我们的窗口句柄
-    //             let _ = handler.SetWindow(hwnd, null_mut());
+            if let Ok(handler) = preview_handler {
+                // 初始化文件
+                let initialize_with_file = handler.cast::<IInitializeWithItem>()?;
+                let _ = initialize_with_file.Initialize(&shell_item, 0);
+                // 将预览窗口绑定到我们的窗口句柄
+                let _ = handler.SetWindow(hwnd, null_mut());
 
-    //             // 触发文件预览
-    //             handler.DoPreview()?;
-    //         }
+                // 触发文件预览
+                handler.DoPreview()?;
+            }
 
-    //         Ok(())
-    //     }
-    // }
+            Ok(())
+        }
+    }
 }
 
 // 全局静态 APP 实例
 static mut APP_INSTANCE: Option<PreviewFile> = None;
 
 // 公开一个全局函数来初始化 PreviewFile
-pub fn init_preview_file() {
+pub fn init_preview_file(handle: AppHandle) {
     let mut preview_file = PreviewFile::new();
     preview_file.set_keyboard_hook();
-
+    preview_file.app_handle = Some(handle);
     // 将实例存储在全局变量中
     unsafe {
         APP_INSTANCE = Some(preview_file);

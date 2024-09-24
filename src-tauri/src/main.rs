@@ -103,7 +103,7 @@ fn main() {
             capability::generate(app)?;
             // 添加插件的权限
             capability::add(app);
-            init_preview_file();
+            init_preview_file(app.handle().clone());
             // cli
             match app.cli().matches() {
                 // `matches` here is a Struct with { args, subcommand }.
