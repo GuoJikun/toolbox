@@ -3,20 +3,26 @@ use tauri::{AppHandle, Manager};
 use windows::{
     core::{Interface, GUID, PWSTR, VARIANT},
     Win32::{
-        Foundation::{HWND, LPARAM, LRESULT, WPARAM},
-        System::Com::{
-            CoCreateInstance, CoInitializeEx, CoTaskMemFree, CoUninitialize, IDispatch, CLSCTX_ALL,
-            CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED, COINIT_DISABLE_OLE1DDE,
+        Foundation::{HWND, LPARAM, LRESULT, WPARAM, BOOL},
+        System::{
+            Com::{
+                CoCreateInstance, CoInitializeEx, CoTaskMemFree, CoUninitialize, IDispatch,
+                IServiceProvider, CLSCTX_ALL, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED,
+                COINIT_DISABLE_OLE1DDE,
+            },
+            Threading
         },
         UI::{
             Input::KeyboardAndMouse,
             Shell::{
                 Common::{ITEMIDLIST, STRRET},
-                IEnumIDList, IInitializeWithItem, IPreviewHandler, IShellBrowser, IShellFolder,
-                IShellItem, IShellView, IShellWindows, SHCreateItemFromParsingName,
-                SHGetDesktopFolder, SHGDN_FORPARSING, SVGIO_SELECTION,
+                IEnumIDList, IExplorerBrowser, IInitializeWithItem, IPreviewHandler, IShellBrowser,
+                IShellFolder, IShellFolderView, IShellItem, IShellView, IShellView2, IShellWindows,
+                IWebBrowser2, SHCreateItemFromParsingName, SHGetDesktopFolder, SHGDN_FORPARSING,
+                SVGIO_SELECTION,
             },
             WindowsAndMessaging,
+            Controls
         },
     },
 };
@@ -103,6 +109,91 @@ impl PreviewFile {
         unsafe { WindowsAndMessaging::CallNextHookEx(None, ncode, wparam, lparam) }
     }
 
+    fn utf8_string_to_utf16_string(s: String) -> String {
+        let mut u16 = s.encode_utf16().collect::<Vec<u16>>();
+        while u16.len() < 256 {
+            u16.push(0)
+        }
+        return String::from_utf16_lossy(&u16.as_slice());
+    }
+    unsafe extern "system" fn enum_child_windows_proc(child_hwnd: HWND, l_param: LPARAM) -> BOOL {
+        let class_name = {
+            let mut buf: [u16; 256] = [0; 256];
+            WindowsAndMessaging::GetClassNameW(child_hwnd, &mut buf);
+            String::from_utf16_lossy(&buf)
+        };
+
+        let sys_tree_view_32 = Self::utf8_string_to_utf16_string(String::from("SysTreeView32"));
+
+        println!("Class name: #{}# == #{}# is {}", class_name, sys_tree_view_32, class_name.eq(&sys_tree_view_32));
+        if class_name == "SysListView32" {
+            let item_count = WindowsAndMessaging::SendMessageW(child_hwnd, Controls::LVM_GETITEMCOUNT, WPARAM(0), LPARAM(0));
+            let mut text_buffer: [u16; 256] = [0; 256];
+            for i in 0..item_count.0 {
+                let mut lvi: Controls::LVITEMW = Controls::LVITEMW {
+                    mask: Controls::LVIF_TEXT,
+                    iItem: i as i32,
+                    iSubItem: 0,
+                    cchTextMax: text_buffer.len() as i32,
+                    ..Default::default()
+                };
+                let psz_text = text_buffer.as_mut_ptr();
+                lvi.pszText = *psz_text.cast::<PWSTR>();
+                lvi.cchTextMax = text_buffer.len() as i32;
+
+                WindowsAndMessaging::SendMessageW(child_hwnd, Controls::LVM_GETITEMTEXT, WPARAM(i as usize), LPARAM(&lvi as *const _ as isize));
+
+                if lvi.iItem == 1 { // 假设你只想获取第一个选中的文件
+                    let file_name = String::from_utf16_lossy(&text_buffer);
+                    println!("Selected file: {}", file_name);
+                    
+                }
+            }
+        } else if class_name.eq(&sys_tree_view_32) {
+            let first_item = WindowsAndMessaging::SendMessageW(child_hwnd, Controls::TVM_GETNEXTITEM, WPARAM(Controls::TVGN_FIRSTVISIBLE as usize), LPARAM(0));
+            if first_item.0 != 0 {
+                let item = Controls::TVITEMW {
+                    mask: Controls::TVIF_TEXT | Controls::TVIF_HANDLE,
+                    hItem: Controls::HTREEITEM(first_item.0),
+                    cchTextMax: 256,
+                    pszText: *[0; 256].as_mut_ptr().cast::<PWSTR>(),
+                    ..Default::default()
+                };
+                let result = WindowsAndMessaging::SendMessageW(child_hwnd, Controls::TVM_GETITEM, WPARAM(0), LPARAM(&item as *const _ as isize));
+                println!("result is {:?}", result);
+                if result.0 != 0 {
+                    // 获取成功，处理获取到的文件名
+                    println!("result is {:?}", result);
+                }
+
+                let text_slice = std::slice::from_raw_parts(
+                    item.pszText.as_ptr(),
+                    item.cchTextMax as usize
+                );
+                let file_name = String::from_utf16_lossy(text_slice);
+                println!("Selected item: {}", file_name)
+            }
+        }
+        true.into() // 继续枚举
+    }
+    fn get_selected_file_path(hwnd: HWND) -> Option<String> {
+        unsafe {
+            let mut process_id: u32 = 0;
+            WindowsAndMessaging::GetWindowThreadProcessId(hwnd, Some(&mut process_id));
+
+            let handle = Threading::OpenProcess(Threading::PROCESS_QUERY_INFORMATION, false, process_id);
+            if handle.is_err() {
+                return None;
+            }
+
+            let mut selected_path: Option<String> = None;
+
+            // 枚举子窗口
+            let _ = WindowsAndMessaging::EnumChildWindows(hwnd, Some(Self::enum_child_windows_proc), LPARAM(0));
+
+            selected_path
+        }
+    }
     fn get_selected_file() -> Option<String> {
         unsafe {
             let hwnd = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
@@ -114,12 +205,13 @@ impl PreviewFile {
             println!("className is {}", class_name_str);
             if class_name_str.contains("CabinetWClass") || class_name_str.contains("Progman") {
                 // 窗口是文件管理器或桌面，开始获取选中的文件
-                if let Some(shell_view) = Self::get_shell_view(hwnd) {
-                    println!("shell_view is {:?}", shell_view);
-                    // 获取当前选中的文件路径
-                    let selected_file = Self::get_selected_file_from_shell_view(shell_view);
-                    return selected_file;
-                }
+                return Self::get_selected_file_path(hwnd);
+                // if let Some(shell_view) = Self::get_selected_file(hwnd) {
+                //     println!("shell_view is {:?}", shell_view);
+                //     // 获取当前选中的文件路径
+                //     let selected_file = Self::get_selected_file_from_shell_view(shell_view);
+                //     return selected_file;
+                // }
             }
         }
         None
@@ -145,6 +237,7 @@ impl PreviewFile {
         }
         false
     }
+
     fn get_shell_view(hwnd: HWND) -> Option<IShellView> {
         const CLSID_SHELL_WINDOWS: GUID = GUID::from_u128(0x9BA05972_F6A8_11CF_A442_00A0C90A8F39);
         unsafe {
@@ -170,14 +263,16 @@ impl PreviewFile {
 
                 if item.is_ok() {
                     let dispatch = item.unwrap();
+
                     let shell_browser = dispatch.cast::<IShellBrowser>();
                     match shell_browser {
                         Ok(shell_browser) => {
-                            let hwnd_browser = shell_browser.GetWindow();
-                            if hwnd_browser.unwrap() == hwnd {
+                            // 直接从 IShellBrowser 获取 IShellView
+                            let shell_view_hwnd = shell_browser.GetWindow();
+                            if shell_view_hwnd.unwrap() == hwnd {
                                 let shell_view = shell_browser.QueryActiveShellView();
                                 if shell_view.is_ok() {
-                                    found_shell_view = Some(shell_view.unwrap());
+                                    found_shell_view = shell_view.ok(); // 找到 IShellView，返回
                                     break;
                                 }
                             }
