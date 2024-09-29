@@ -36,7 +36,7 @@ onMounted(async () => {
                     <Config theme="outline" size="20" />
                 </router-link>
             </div>
-            <div style="padding: 12px">
+            <div style="padding: 12px;flex: auto;">
                 <RouterView />
             </div>
         </div>

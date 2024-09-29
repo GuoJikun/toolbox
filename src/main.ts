@@ -15,22 +15,22 @@ import { registerShortcut, getWindow } from '@/utils/index'
 
 async function addShortcut() {
     const shortcut = 'Alt+Space'
-    registerShortcut(shortcut, async () => {
+    await registerShortcut(shortcut, async () => {
         console.log('Shortcut triggered')
         const label = await getWindow('search')
         console.log('label', label)
         if (label) {
             if (await label.isVisible()) {
-                label.show()
+                await label.show()
             } else {
-                label.setFocus()
+                await label.setFocus()
             }
         }
         label?.show()
     })
 }
 
-addShortcut()
+await addShortcut()
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)

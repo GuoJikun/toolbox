@@ -2,6 +2,7 @@
 import InstallPlugin from '@/components/install-plugin.vue'
 import { invoke } from '@tauri-apps/api/core'
 import { execModulePlugin } from '@/utils/plugin'
+import { useRouter, type RouterOptions } from "vue-router"
 
 const handlerInstallSuccess = (path: string) => {
     console.log('path', path)
@@ -42,6 +43,10 @@ const openScreenshotWindow = async () => {
     console.log('indexPath', indexPath)
     execModulePlugin(indexPath, pluginConfig)
 }
+const router = useRouter()
+const routeTo = (route: string) => {
+    router.push(route);
+}
 </script>
 <template>
     <div class="home">
@@ -50,7 +55,11 @@ const openScreenshotWindow = async () => {
             <el-button @click="getScreenshot">获取屏幕截图</el-button>
             <el-button @click="openScreenshotWindow">打开截图功能</el-button>
         </el-space>
-
+        <el-divider/>
+        <el-space>
+            <el-button @click="routeTo('/plugins/color-conversion')">颜色转换</el-button>
+        </el-space>
+        <el-divider/>
         <div>
             <InstallPlugin tag="button" @confirm="handlerInstallSuccess"> 选择目录 </InstallPlugin>
         </div>

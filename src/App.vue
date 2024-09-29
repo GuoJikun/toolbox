@@ -15,7 +15,7 @@ const getPlugins = async () => {
         return []
     }
     const dirs = await readDir(pluginsPath)
-    dirs.forEach(async (item) => {
+    for (const item of dirs) {
         if (item.isDirectory) {
             const pluginPath = await getPluginPath(item.name)
             const configPath = await formatPath(pluginPath, '/config.json')
@@ -26,7 +26,7 @@ const getPlugins = async () => {
                 ...config
             })
         }
-    })
+    }
 
     return plugins
 }

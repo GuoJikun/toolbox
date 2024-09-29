@@ -1,4 +1,5 @@
 use std::{ffi::OsString, os::windows::ffi::OsStringExt, ptr::null_mut};
+use std::io::Read;
 use tauri::{AppHandle, Manager};
 use windows::{
     core::{Interface, GUID, PWSTR, VARIANT,IUnknown, PCWSTR},
@@ -83,28 +84,6 @@ impl Explorer {
     fn get_shell_tab_window_hwnd(hwnd: HWND)-> Option<HWND> {
         unsafe {
             let mut shell_tab_window_hwnd : HWND = HWND::default();
-            let mut data_bytes = [0u16; 256];
-            let mut data = COPYDATASTRUCT {
-                dwData: 1,
-                cbData: (data_bytes.len() + 1) as u32,
-                lpData: data_bytes.as_mut_ptr() as *mut std::ffi::c_void,
-            }; // 自定义数据，如果需要
-            println!("data is {:?}", data);
-            let tmp = WindowsAndMessaging::SendMessageTimeoutW(hwnd, WindowsAndMessaging::WM_COPYDATA, WPARAM(0), LPARAM(&mut data as *mut _ as isize), WindowsAndMessaging::SMTO_ABORTIFHUNG | WindowsAndMessaging::SMTO_NOTIMEOUTIFNOTHUNG, 5000, None) ;
-            println!("SendMessageA return value is {:?}", tmp);
-            if tmp.0 != 0 {
-                // 解析返回的数据，获取文件路径
-                // 需要实现具体的解析逻辑
-                println!("################## {:?}", data);
-                // 读取数据
-                let data_slice = std::slice::from_raw_parts(data.lpData as *const u8, data.cbData as usize);
-
-                // 假设数据是以 null 结尾的字符串
-                if let Ok(str_slice) = std::ffi::CStr::from_bytes_with_nul(data_slice) {
-                    println!("################## {:?}", str_slice.to_string_lossy().into_owned());
-                }
-                
-            }
             let result = WindowsAndMessaging::EnumChildWindows(hwnd, Some(Self::enum_child_shell_tab_windows_proc), LPARAM(&mut shell_tab_window_hwnd as *mut _ as isize));
             println!("shell_tab_window_hwnd is {:?}", shell_tab_window_hwnd);
             return Some(shell_tab_window_hwnd);

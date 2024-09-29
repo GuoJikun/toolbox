@@ -4,12 +4,10 @@ import HomeLayout from '../views/home/layout.vue'
 import Home from '../views/home/index.vue'
 import Search from '../views/search/index.vue'
 
+import plugins from "./plugins"
+
 const routes: RouteRecordRaw[] = [
     {
-        path: '/',
-        name: 'homeLayout',
-        component: HomeLayout,
-        redirect: '/home',
         children: [
             {
                 path: '/home',
@@ -21,12 +19,12 @@ const routes: RouteRecordRaw[] = [
                 name: 'setting',
                 component: () => import('@/views/home/setting/index.vue')
             },
-            {
-                path: '/plugins',
-                name: 'plugins',
-                component: () => import('@/views/home/plugins/index.vue')
-            }
-        ]
+            plugins
+        ],
+        component: HomeLayout,
+        name: 'homeLayout',
+        path: '/',
+        redirect: '/home'
     },
     {
         path: '/search',
