@@ -14,6 +14,7 @@
       "http://localhost:5173"
     ]
   },
+  "local": true,
   "permissions": [
     "core:window:allow-show",
     "core:window:allow-start-dragging",

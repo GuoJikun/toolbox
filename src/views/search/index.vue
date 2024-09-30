@@ -7,6 +7,7 @@ import { useIndexStore } from '@/store'
 
 import Search from './components/search.vue'
 import Result from './components/result.vue'
+import internalPlugins from '@/data/internal-plugins.ts'
 
 const mainStore = useIndexStore()
 
@@ -18,7 +19,7 @@ onMounted(async () => {
     const searchWindow = await getWindow('search')
     console.log('searchWindow', searchWindow)
     searchWindow?.once('tauri://blur', () => {
-        searchWindow.hide()
+        searchWindow?.hide()
     })
 
     searchWindow?.listen('tauri://focus', () => {
@@ -129,18 +130,21 @@ const resultClick = async (item: any) => {
     }
     if (item.source === 'module') {
         const pluginConfig = item.raw
-        const { main } = pluginConfig
+        const { main, id } = pluginConfig
 
-        let indexPath = `http://localhost:6543/${pluginConfig.id}/${main}`
-        if (pluginConfig.id === 'screenshot') {
+        let indexPath = `http://localhost:6543/${id}/${main}`
+        if(internalPlugins.some(c => c.id === id)){
+            indexPath = pluginConfig.main
+        }
+        if (id === 'screenshot') {
             indexPath = pluginConfig.devMain
         }
         console.log('indexPath', indexPath)
-        execModulePlugin(indexPath, pluginConfig)
+        await execModulePlugin(indexPath, pluginConfig)
     } else if (item.source === 'installedPkg') {
         console.log('执行已安装的程序包')
         if (item.raw.path) {
-            runSoftware(item.raw.path)
+            await runSoftware(item.raw.path)
         } else {
             console.log('未找到可执行文件')
         }

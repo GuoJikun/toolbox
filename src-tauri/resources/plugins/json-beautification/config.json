@@ -2,7 +2,7 @@
     "id": "json-beautification",
     "name": "JSON 美化",
     "main": "index.html",
-    "primissions": [
+    "permissions": [
         "dialog:deny-message"
     ],
     "keywords": [

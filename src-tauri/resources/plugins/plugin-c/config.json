@@ -2,7 +2,7 @@
     "id": "plugin-c",
     "name": "JSON 对比",
     "main": "index.html",
-    "primissions": [],
+    "permissions": [],
     "keywords": ["json"],
     "description": "json 对比工具",
     "version": "1.0.0",

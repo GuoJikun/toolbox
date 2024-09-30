@@ -10,7 +10,7 @@
     ],
     "description": "screenshot",
     "version": "0.1.0",
-    "primissions": [
+    "permissions": [
         "core:image:allow-from-bytes"
     ],
     "windowConfig": {

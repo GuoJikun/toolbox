@@ -61,8 +61,8 @@ const handleCopy = useThrottleFn((text:string) => {
 <template>
 <div class="color-conversion">
     <div class="color-conversion__header">
-        <h2>颜色转换</h2>
-        <el-input v-model.trim="colorSource">
+        <h2>输入值：</h2>
+        <el-input v-model.trim="colorSource" size="large">
             <template #append>
                 <el-button @click="handleChange">转换</el-button>
             </template>
@@ -70,7 +70,7 @@ const handleCopy = useThrottleFn((text:string) => {
     </div>
     <div class="color-conversion__body">
         <div style="display: flex;align-items: flex-end;gap: 8px">
-            <h2>颜色值</h2>
+            <h2>输出值</h2>
             <el-text  type="info">点击鼠标右键复制颜色</el-text>
         </div>
         <div class="color-conversion__body-wrap">

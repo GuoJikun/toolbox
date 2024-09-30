@@ -3,7 +3,7 @@ import LayoutHeader from './layouts/header.vue';
 </script>
 
 <template>
-    <div>
+    <div class="plugins__container">
         <LayoutHeader />
         <div>
             <router-view />
@@ -12,5 +12,9 @@ import LayoutHeader from './layouts/header.vue';
 </template>
 
 <style scoped lang="scss">
-
+.plugins {
+    &__container{
+        padding: 24px;
+    }
+}
 </style>

@@ -32,7 +32,7 @@ pub fn generate(app: &mut App) -> io::Result<()> {
                 let config_data = config.get_data().as_object().unwrap();
                 let id = config_data.get("id").unwrap().as_str().unwrap();
                 let path = dist_path.join(format!("{}.json", id));
-                let _ = match config_data.get("primissions") {
+                let _ = match config_data.get("permissions") {
                     Some(permissions) => {
                         let content = json!({
                             "identifier": format!("toolbox-plugin-{}", id),

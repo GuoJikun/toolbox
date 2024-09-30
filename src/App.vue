@@ -7,6 +7,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { formatPath } from '@/utils/index'
 import { getPluginsPath, getPluginPath } from '@/utils/plugin'
 import { PluginConfig, InstalledPkg } from './utils/typescript'
+import internalPlugins from '@/data/internal-plugins'
 
 const getPlugins = async () => {
     const plugins: Array<PluginConfig> = []
@@ -39,7 +40,7 @@ const getInstalledPkg = async () => {
 const mainStore = useIndexStore()
 onMounted(async () => {
     const plugins = await getPlugins()
-    mainStore.updatePlugins(plugins)
+    mainStore.updatePlugins([...plugins, ...internalPlugins])
     const installedPkg = await getInstalledPkg()
     mainStore.updateInstalledPkg(installedPkg)
 })

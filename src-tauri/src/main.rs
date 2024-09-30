@@ -19,7 +19,7 @@ mod command;
 use command::{get_installed_apps, run_external_program, screenshot_desktop};
 
 mod utils;
-use utils::capability;
+use utils::{capability, shortcut};
 
 // mod platform;
 // use platform::{cleanup_preview_file, init_preview_file};
@@ -58,7 +58,6 @@ fn main() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_cli::init())
         .setup(|app| {
             // 初始化 store
@@ -116,6 +115,8 @@ fn main() {
                 }
                 Err(_) => {}
             }
+            // 绑定全局快捷键
+            shortcut::bind(app.handle().clone())?;
             Ok(())
         })
         // .on_window_event(|window, event| match event {

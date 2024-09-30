@@ -15,24 +15,26 @@ export interface PluginBaseConfig {
 }
 
 interface PluginBinaryConfig extends PluginBaseConfig {
+    type: 'binary',
     prefix?: string
 }
 
 interface PluginModuleConfig extends PluginBaseConfig {
+    type: 'module'
     shortcut?: string
-    primissions: string[]
+    permissions: string[]
     windowConfig: WindowOptions
 }
 
 export type ScriptEnv = 'node' | 'php' | 'python'
 interface PluginScriptConfig extends PluginBaseConfig {
+    type: 'script'
     scriptEnv: ScriptEnv
     prefix?: string
 }
 
-export interface PluginConfig extends PluginBinaryConfig, PluginModuleConfig, PluginScriptConfig {
-    type: 'script' | 'binary' | 'module'
-}
+export type PluginType = "script" | "module" | "binary"
+export type PluginConfig = PluginBinaryConfig | PluginModuleConfig | PluginScriptConfig
 
 export interface InstalledPkg {
     name: string

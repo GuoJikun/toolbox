@@ -19,7 +19,6 @@ const routes: RouteRecordRaw[] = [
                 name: 'setting',
                 component: () => import('@/views/home/setting/index.vue')
             },
-            plugins
         ],
         component: HomeLayout,
         name: 'homeLayout',
@@ -30,7 +29,8 @@ const routes: RouteRecordRaw[] = [
         path: '/search',
         name: 'search',
         component: Search
-    }
+    },
+    plugins
 ]
 
 export default createRouter({

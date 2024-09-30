@@ -78,7 +78,8 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
     let currentWindow = await getWindow(windowLabel)
     if (!currentWindow) {
         currentWindow = new Window(windowLabel, {
-            center: windowConfig.fullscreen ? false : true,
+            title: pluginConfig.name,
+            center: !windowConfig.fullscreen,
             width: 1000,
             height: 600,
             ...windowConfig
@@ -88,7 +89,7 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
     const windowOuterSize = await currentWindow.outerSize()
     const windowInnerSize = await currentWindow.innerSize()
     console.log('execModulePlugin window', windowOuterSize, windowInnerSize)
-    currentWindow.listen('tauri://window-created', () => {
+    await currentWindow.listen('tauri://window-created', () => {
         console.log('tauri://window-created')
     })
     const webviewLabel = `toolbox-plugin-${id}-webview`
@@ -101,17 +102,17 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
     }
     const webview = new Webview(currentWindow, webviewLabel, webviewOption)
 
-    webview.listen('tauri://webview-created', () => {
+    await webview.listen('tauri://webview-created', () => {
         console.log('webview-created')
     })
-    webview.once('tauri://error', function (e) {
+    await webview.once('tauri://error', function (e) {
         // an error happened creating the webview
         console.log('error', e)
     })
 
     console.log('execModulePlugin webview', webview)
 
-    currentWindow.show()
+    await currentWindow.show()
 }
 
 /**
