@@ -73,6 +73,7 @@ export const execScriptPlugin = async (env: ScriptEnv, path: string, args: strin
 
 export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) => {
     // await invoke('add_acl')
+    // @ts-ignore
     const { windowConfig = {}, id } = pluginConfig
     const windowLabel = `toolbox-plugin-${id}-window`
     let currentWindow = await getWindow(windowLabel)
