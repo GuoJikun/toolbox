@@ -6,7 +6,8 @@ interface State {
     installedPkg: InstalledPkg[]
 }
 
-export const useIndexStore = defineStore('index', {
+// @ts-ignore
+export let useIndexStore = defineStore('index', {
     state: (): State => ({
         plugins: [],
         installedPkg: []

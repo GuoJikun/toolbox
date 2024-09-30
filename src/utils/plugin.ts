@@ -2,8 +2,7 @@ import type { PluginConfig, ScriptEnv } from '@/utils/typescript'
 import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
 import { Webview, type WebviewOptions } from '@tauri-apps/api/webview'
-import { exists, mkdir } from '@tauri-apps/plugin-fs'
-import { resourceDir, join } from '@tauri-apps/api/path'
+import { join, resourceDir } from '@tauri-apps/api/path'
 import { getWindow } from './window'
 
 /**
@@ -12,8 +11,7 @@ import { getWindow } from './window'
  */
 export const getPluginsPath = async () => {
     const homePath = await resourceDir()
-    const pluginDir = await join(homePath, '/plugins')
-    return pluginDir
+    return await join(homePath, '/plugins')
 }
 /**
  * 获取插件路径
@@ -27,7 +25,7 @@ export const getPluginPath = async (name: string) => {
 
 /**
  * 执行二进制插件
- * @param path 二进制文件路径
+ * @param executablePath 二进制文件路径
  * @param args 参数
  */
 export const execBinaryPlugin = async (executablePath: string, args: string[] = []) => {
@@ -123,16 +121,6 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
  * @returns
  */
 export const getPluginOfPrefix = (prefix: string, pluginList: Array<PluginConfig> = []) => {
-    return pluginList.find((plugin) => plugin.prefix === prefix)
+    return pluginList.find((plugin) => 'prefix' in plugin ? plugin?.prefix === prefix : null)
 }
 
-/**
- * 初始化插件目录
- */
-export const initPluginDir = async () => {
-    const pluginDir = await getPluginsPath()
-    const pluginDirExists = await exists(pluginDir)
-    if (!pluginDirExists) {
-        await mkdir(pluginDir, { recursive: true })
-    }
-}
