@@ -69,6 +69,14 @@
     }
   },
   "bundle": {
+    "resources": {
+      "resources/plugins/": "plugins/",
+      "resources/capabilities/": "capabilities/",
+      "resources/config/caddy.json": "config/caddy.json"
+    },
+    "externalBin": [
+      "binaries/caddy/caddy"
+    ],
     "active": true,
     "targets": "all",
     "icon": [

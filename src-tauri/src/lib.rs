@@ -48,7 +48,6 @@ mod tray;
 pub fn run() {
     utils::kill_server_by_name("caddy");
     tauri::Builder::default()
-        .plugin(tauri_plugin_global_shortcut::Builder::default().build())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,

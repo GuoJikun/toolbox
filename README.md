@@ -33,3 +33,15 @@ plguin-A
   - 唤起搜索页面的快捷键
 - 插件设置
   - 插件目录
+
+## 参与开发
+
+```bash
+git clone https://github.com/xxxx/xxx.git
+# 安装插件依赖并将构建插件作为项目的插件使用、复制二进制文件
+pnpm plugins
+# 安装项目依赖
+pnpm i
+# 启动项目
+pnpm tauri dev
+```
