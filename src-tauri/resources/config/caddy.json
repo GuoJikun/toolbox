@@ -1,0 +1,19 @@
+{
+    "apps": {
+        "http": {
+            "http_port": 54321,
+            "servers":{
+                "routes": [
+                    {
+                        "listen": "localhost:54321",
+                        "handle": [
+                            {
+                                "handler": "file_server"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "productName": "toolbox",
+  "version": "0.1.0",
+  "identifier": "dev.jikun.toolbox",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "toolbox",
+        "width": 1000,
+        "height": 600,
+        "minWidth": 600,
+        "minHeight": 400,
+        "center": true,
+        "decorations": false
+      },
+      {
+        "title": "search",
+        "width": 800,
+        "maxHeight": 600,
+        "minHeight": 100,
+        "url": "/search",
+        "label": "search",
+        "visible": false,
+        "skipTaskbar": false,
+        "focus": true,
+        "decorations": false,
+        "transparent": false,
+        "shadow": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "plugins": {
+    "cli": {
+      "description": "Tauri CLI Plugin Example",
+      "args": [
+        {
+          "short": "i",
+          "name": "install",
+          "description": "Intall plugin"
+        },
+        {
+          "short": "c",
+          "name": "create",
+          "description": "Create a new plugin"
+        },
+        {
+          "short": "l",
+          "name": "list",
+          "description": "Plugin list of installed"
+        },
+        {
+          "short": "v",
+          "name": "verbose",
+          "description": "Verbosity level"
+        }
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
