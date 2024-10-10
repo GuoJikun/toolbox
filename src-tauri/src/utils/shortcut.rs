@@ -3,6 +3,7 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 pub fn bind(app: AppHandle) -> Result<(), Box<dyn Error>> {
+    println!("Binding shortcut");
     let ctrl_n_shortcut = Shortcut::new(Some(Modifiers::ALT), Code::Space);
     let handle = app.clone();
     let global_shortcut = tauri_plugin_global_shortcut::Builder::new()

@@ -18,8 +18,8 @@ use command::{get_installed_apps, run_external_program, screenshot_desktop};
 mod utils;
 use utils::{capability, shortcut};
 
-// mod platform;
-// use platform::{cleanup_preview_file, init_preview_file};
+mod platform;
+use platform::{cleanup_preview_file, init_preview_file};
 
 #[command]
 fn add_acl() {
@@ -48,7 +48,6 @@ mod tray;
 pub fn run() {
     utils::kill_server_by_name("caddy");
     tauri::Builder::default()
-        .plugin(tauri_plugin_global_shortcut::Builder::default().build())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
@@ -100,7 +99,8 @@ pub fn run() {
             capability::generate(app)?;
             // 添加插件的权限
             capability::add(app);
-            // init_preview_file(app.handle().clone());
+            // 按空格预览文件功能
+            init_preview_file(app.handle().clone());
             // cli
             match app.cli().matches() {
                 // `matches` here is a Struct with { args, subcommand }.
@@ -117,16 +117,17 @@ pub fn run() {
             shortcut::bind(app.handle().clone())?;
             Ok(())
         })
-        // .on_window_event(|window, event| match event {
-        //     tauri::WindowEvent::CloseRequested { .. } => {
-        //         cleanup_preview_file();
-        //         let label = window.label();
-        //         if label == "previewFile" {
-        //             let _ = window.close();
-        //         }
-        //     }
-        //     _ => {}
-        // })
+        .on_window_event(|window, event| match event {
+            tauri::WindowEvent::CloseRequested { .. } => {
+                cleanup_preview_file();
+                let label = window.label();
+                if label == "previewFile" {
+                    let _ = window.close();
+                }
+                utils::kill_server_by_name("caddy");
+            }
+            _ => {}
+        })
         .invoke_handler(tauri::generate_handler![
             run_external_program,
             run_node_script,

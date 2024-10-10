@@ -1,45 +1,47 @@
-# toolbox
+# Toolbox
 
-This template should help get you started developing with Vue 3 in Vite.
+使用 tauri 开发的一个工具集软件
 
-## Recommended IDE Setup
+## 插件设想
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-pnpm install
+```md
+plguin-A
+    - config.json
+    - index.html
 ```
 
-### Compile and Hot-Reload for Development
-
-```sh
-pnpm dev
+```json
+// plugin/config.json
+{
+    "id": "", // 插件的唯一标识，为了防止重复最好加上自己的名字
+    "name": "", // 插件的名字
+    "main": "plugin-a/index.html", // 默认是插件目录下的 index.html(要包含插件目录)
+    "primissions": [], // 同 tauri 的权限
+    "keywords": [], // 在软件中搜索的关键字
+    "description": "", // 插件描述
+    "version": "",
+    "author": "",
+    "email": "",
+    "homeUrl": "https://xxxx.com",
+    "type": "backend/frontend"
+}
 ```
 
-### Type-Check, Compile and Minify for Production
+## 设置项
 
-```sh
-pnpm build
-```
+- 基础设置
+  - 唤起搜索页面的快捷键
+- 插件设置
+  - 插件目录
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+## 参与开发
 
-```sh
-pnpm test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
+```bash
+git clone https://github.com/xxxx/xxx.git
+# 安装插件依赖并将构建插件作为项目的插件使用、复制二进制文件
+pnpm plugins
+# 安装项目依赖
+pnpm i
+# 启动项目
+pnpm tauri dev
 ```

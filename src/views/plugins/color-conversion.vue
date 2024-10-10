@@ -4,7 +4,7 @@ import tinyColor from 'tinycolor2'
 import { useThrottleFn } from '@vueuse/core'
 import { ElMessage } from 'element-plus'
 
-const colorSource = ref("")
+const colorSource = ref<string>("")
 
 enum ColorFormat {
     hex = "hex",

@@ -17,7 +17,6 @@ const sidebar = [
 export default defineConfig({
     title: 'Toolbox',
     lang: 'zh-CN',
-
     lastUpdated: true,
     metaChunk: true,
 

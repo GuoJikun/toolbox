@@ -3,14 +3,15 @@ use tauri::{AppHandle, Manager};
 use windows::{
     core::{IUnknown, Interface, GUID, PCWSTR, PWSTR, VARIANT},
     Win32::{
-        Foundation::{BOOL, HWND, LPARAM, LRESULT, WPARAM},
-        System::
+        Foundation::{BOOL, HWND, LPARAM, LRESULT, WPARAM,S_OK},
+        System::{
             Com::{
-                CoCreateInstance, CoInitializeEx, CoTaskMemFree, CoUninitialize, IDispatch,
+                CoCreateInstance, CoInitializeEx,CoInitialize, CoTaskMemFree, CoUninitialize, IDispatch,
                 IServiceProvider, CLSCTX_ALL, CLSCTX_INPROC_SERVER,
                 COINIT_APARTMENTTHREADED, COINIT_DISABLE_OLE1DDE,
-            }
-        ,
+            },
+            Memory,
+        },
         UI::{
             Input::KeyboardAndMouse,
             Shell::{
@@ -18,12 +19,15 @@ use windows::{
                 IEnumIDList, IInitializeWithItem, IPreviewHandler, IShellBrowser,
                 IShellFolder, IShellItem, IShellView, IShellWindows,
                 IWebBrowser2, SHCreateItemFromParsingName, SHGetDesktopFolder, ShellWindows,
-                SHGDN_FORPARSING, SVGIO_SELECTION,
+                SHGDN_FORPARSING, SVGIO_SELECTION, SWC_DESKTOP, SWC_EXPLORER, SWFO_NEEDDISPATCH,
+                IUnknown_QueryService, SID_STopLevelBrowser
+
             },
             WindowsAndMessaging,
         },
     },
 };
+use windows::Win32::UI::Shell::IFolderView;
 
 #[derive(Debug)]
 pub struct PreviewFile {
@@ -221,75 +225,36 @@ impl PreviewFile {
         return String::from_utf16_lossy(&u16.as_slice());
     }
 
-    // unsafe extern "system" fn enum_child_windows_proc(child_hwnd: HWND, l_param: LPARAM) -> BOOL {
-    //     let class_name = {
-    //         let mut buf: [u16; 256] = [0; 256];
-    //         WindowsAndMessaging::GetClassNameW(child_hwnd, &mut buf);
-    //         String::from_utf16_lossy(&buf)
-    //     };
-    //
-    //     let sys_tree_view_32 = Self::utf8_string_to_utf16_string(String::from("SysTreeView32"));
-    //
-    //     if class_name == "SysListView32" {
-    //         let item_count = WindowsAndMessaging::SendMessageW(child_hwnd, Controls::LVM_GETITEMCOUNT, WPARAM(0), LPARAM(0));
-    //         let mut text_buffer: [u16; 256] = [0; 256];
-    //         for i in 0..item_count.0 {
-    //             let mut lvi: Controls::LVITEMW = Controls::LVITEMW {
-    //                 mask: Controls::LVIF_TEXT,
-    //                 iItem: i as i32,
-    //                 iSubItem: 0,
-    //                 cchTextMax: text_buffer.len() as i32,
-    //                 ..Default::default()
-    //             };
-    //             let psz_text = text_buffer.as_mut_ptr();
-    //             lvi.pszText = *psz_text.cast::<PWSTR>();
-    //             lvi.cchTextMax = text_buffer.len() as i32;
-    //
-    //             WindowsAndMessaging::SendMessageW(child_hwnd, Controls::LVM_GETITEMTEXT, WPARAM(i as usize), LPARAM(&lvi as *const _ as isize));
-    //
-    //             if lvi.iItem == 1 { // 假设你只想获取第一个选中的文件
-    //                 let file_name = String::from_utf16_lossy(&text_buffer);
-    //                 println!("Selected file: {}", file_name);
-    //
-    //             }
-    //         }
-    //     } else if class_name.eq(&sys_tree_view_32) {
-    //         let first_item = WindowsAndMessaging::SendMessageW(child_hwnd, Controls::TVM_GETNEXTITEM, WPARAM(Controls::TVGN_FIRSTVISIBLE as usize), LPARAM(0));
-    //
-    //         if first_item.0 != 0 {
-    //             let mut tmp_text_buffer: [u16; 256] = [0; 256];
-    //             // tmp_text_buffer[0] = 0;
-    //
-    //             let mut tvi_item = Controls::TVITEMW {
-    //                 mask: Controls::TVIF_HANDLE | Controls::TVIF_TEXT | Controls::TVIF_IMAGE | Controls::TVIF_SELECTEDIMAGE,
-    //                 hItem: Controls::HTREEITEM(first_item.0),
-    //                 cchTextMax: tmp_text_buffer.len() as i32,
-    //                 pszText: PWSTR(tmp_text_buffer.as_mut_ptr()),
-    //                 ..Default::default()
-    //             };
-    //             println!("child_hwnd is {:?}", &child_hwnd);
-    //             println!("tvi_item is {:?}", &tvi_item);
-    //             let result = WindowsAndMessaging::PostMessageW(child_hwnd, Controls::TVM_GETITEM, WPARAM(0), LPARAM(&mut tvi_item as *const _ as isize));
-    //             println!("result is {:?}", result);
-    //             if result.is_ok() {
-    //                 // 获取成功，处理获取到的文件名
-    //                 println!("run success, result is {:?}", result.unwrap());
-    //             }
-    //
-    //             let text_slice = std::slice::from_raw_parts(
-    //                 tvi_item.pszText.as_ptr(),
-    //                 tvi_item.cchTextMax as usize
-    //             );
-    //             let file_name = String::from_utf16_lossy(text_slice);
-    //             println!("Selected item: {}", file_name)
-    //         }
-    //     }
-    //     true.into() // 继续枚举
-    // }
+
     fn get_lpsz_class(str: &str) -> PCWSTR {
         return PCWSTR::from_raw(str.encode_utf16().collect::<Vec<u16>>().as_ptr());
     }
     fn get_selected_file_path(hwnd: HWND) -> Option<String> {
+        unsafe {
+            // 准备发送 WM_COPYDATA 消息
+            let mut buffer = [0u16; 256];
+            let mut cds = windows::Win32::System::DataExchange::COPYDATASTRUCT {
+                dwData: 0,
+                cbData: buffer.len() as u32,
+                lpData: buffer.as_mut_ptr() as *mut _,
+            };
+
+            // 发送消息
+            let result = WindowsAndMessaging::SendMessageW(hwnd, WindowsAndMessaging::WM_COPYDATA, WPARAM(0x00000060), LPARAM(&mut cds as *const _ as isize));
+            println!("Received path: {}", result.0);
+            // 处理结果
+            if result.0 != 0 {
+                // 解析返回的数据
+                // 这里需要根据实际情况解析路径
+                // 假设获取的路径在 lpData 指向的内存中
+
+                // let path_ptr = Memory::GlobalLock(cds.lpData);
+                // let path = windows::core::HSTRING::from_wide(path_ptr);
+                // let file_path: String = path.unwrap().to_string_lossy().into();
+                return Some("file_path".into());
+
+            }
+        }
         None
     }
     fn get_selected_file() -> Option<String> {
@@ -303,8 +268,11 @@ impl PreviewFile {
             println!("className is {}", class_name_str);
             if class_name_str.contains("CabinetWClass") || class_name_str.contains("Progman") {
                 // 窗口是文件管理器或桌面，开始获取选中的文件
-                Explorer::get_select_file_path(hwnd);
+                // Self::get_selected_file_path(hwnd);
+                // Explorer::get_select_file_path(hwnd);
                 // return Self::get_selected_file_path(hwnd);
+                let path = Self::get_explorer_show_path();
+                println!("explorer_show_path is {:?}", path);
                 if let Some(shell_view) = Self::get_shell_view(hwnd) {
                     println!("shell_view is {:?}", shell_view);
                     // 获取当前选中的文件路径
@@ -336,7 +304,102 @@ impl PreviewFile {
         }
         false
     }
+    fn get_explorer_show_path() -> String {
+        // debug!("enter get_explorer_show_path");
+        let mut folder_cur_path = "none".to_string();
+        unsafe {
+            let foreground_window = WindowsAndMessaging::GetForegroundWindow();
+            let mut class_name = [0; 260];
+            WindowsAndMessaging::GetClassNameW(foreground_window, &mut class_name);
+            let pos = class_name.iter().position(|c| *c == 0).unwrap();
+            let class_name = String::from_utf16_lossy(&class_name[0..pos]);
+            if class_name != "CabinetWClass" {
+                // debug!("not explorer window：{}", class_name);
+                return folder_cur_path;
+            }
+            // debug!("find explorer windows");
+            let _ = CoInitializeEx(None, COINIT_DISABLE_OLE1DDE);
+            let psh_windows = CoCreateInstance(&ShellWindows, None, windows::Win32::System::Com::CLSCTX_LOCAL_SERVER);
+            if psh_windows.is_err() {
+                CoUninitialize();
+                return folder_cur_path;
+            }
+            let psh_windows: IShellWindows = psh_windows.unwrap();
+            let count = psh_windows.Count();
+            if count.is_err() {
+                CoUninitialize();
+                return folder_cur_path;
+            }
+            let count: i32 = count.unwrap();
+            for i in 0..count {
+                let i = VARIANT::from(i);
 
+                let disp = psh_windows.Item(&i);
+                if disp.is_err() {
+                    // error!("{}", disp.unwrap_err());
+                    continue;
+                }
+                let disp = disp.unwrap();
+                let mut p_app = std::ptr::null_mut();
+                let ret = disp.query(&IWebBrowser2::IID, &mut p_app);
+                if ret != windows::Win32::Foundation::S_OK {
+                    continue;
+                }
+                let p_app = IWebBrowser2::from_raw(p_app);
+                let win_hwnd = p_app.HWND();
+                if win_hwnd.is_err() {
+                    continue;
+                }
+                let win_hwnd = win_hwnd.unwrap();
+                if win_hwnd.0 != foreground_window.0 as isize {
+                    continue;
+                }
+                let mut psp = std::ptr::null_mut();
+                let ret = p_app.query(&IServiceProvider::IID, &mut psp);
+                if ret != windows::Win32::Foundation::S_OK {
+                    continue;
+                }
+                let psp = IServiceProvider::from_raw(psp);
+                let browser = psp.QueryService(&IShellBrowser::IID);
+                if browser.is_err() {
+                    continue;
+                }
+                let browser: IShellBrowser = browser.unwrap();
+                let shell_view = browser.QueryActiveShellView();
+                if shell_view.is_err() {
+                    continue;
+                }
+                let shell_view = shell_view.unwrap();
+                let mut p_folder_view = std::ptr::null_mut();
+                let ret = shell_view.query(&windows::Win32::UI::Shell::IFolderView::IID, &mut p_folder_view);
+                if ret != windows::Win32::Foundation::S_OK {
+                    continue;
+                }
+                let p_folder_view = windows::Win32::UI::Shell::IFolderView::from_raw(p_folder_view);
+                let folder = p_folder_view.GetFolder();
+                if folder.is_err() {
+                    continue;
+                }
+                let folder: windows::Win32::UI::Shell::IPersistFolder2 = folder.unwrap();
+                let pidl = folder.GetCurFolder();
+                if pidl.is_err() {
+                    continue;
+                }
+                let pidl = pidl.unwrap();
+                let path = windows::Win32::UI::Shell::SHGetNameFromIDList(pidl, windows::Win32::UI::Shell::SIGDN_FILESYSPATH);
+                if path.is_err() {
+                    continue;
+                }
+                let path = path.unwrap();
+                let path = path.as_wide();
+                folder_cur_path = String::from_utf16_lossy(path);
+                CoTaskMemFree(Some(path.as_ptr() as *const std::ffi::c_void));
+                break;
+            }
+            CoUninitialize();
+        };
+        return folder_cur_path;
+    }
     fn get_shell_view(hwnd: HWND) -> Option<IShellView> {
         unsafe {
             // 初始化 COM 库
@@ -353,85 +416,37 @@ impl PreviewFile {
             }
             let mut found_shell_view = None;
             let shell_windows: IShellWindows = hr.unwrap();
-            let count = shell_windows.Count().unwrap_or(0);
 
-            for i in 0..count {
-                let index = VARIANT::from(i);
-                let item = shell_windows.Item(&index);
+            let mut tmp = HWND::default();
+              let dispatch = shell_windows.FindWindowSW(
+                &VARIANT::default(),
+                &VARIANT::default(),
+                SWC_DESKTOP,
+                std::ptr::addr_of_mut!(tmp) as _,
+                SWFO_NEEDDISPATCH,
+            );
 
-                if item.is_ok() {
-                    let dispatch = item.unwrap();
-                    let typeinfo_count = dispatch.GetTypeInfoCount().unwrap_or(0);
-                    for t in 0..typeinfo_count {
-                        let type_info = dispatch.GetTypeInfo(t, 1);
-                        if type_info.is_ok() {
-                            let type_info = type_info.unwrap();
-                            let type_attr = type_info.GetTypeAttr();
-                            if type_attr.is_ok() {
-                                let type_attr = type_attr.unwrap();
-                                let guid = (*type_attr).guid;
-                                println!("guid is {:?}", guid);
-                                println!("guid1 is {:?}", IShellBrowser::IID);
+            if dispatch.is_err() {
+                CoUninitialize(); // 清理 COM
+                return None;
+            }
 
-                                if guid == IShellBrowser::IID {
-                                    let shell_browser = dispatch.cast::<IShellBrowser>();
-                                    println!("found IShellBrowser: {:?}", shell_browser.unwrap());
-                                } else if guid == IShellView::IID {
-                                    println!("found IShellView")
-                                } else if guid == IUnknown::IID {
-                                    println!("found IUnknown")
-                                } else if guid == IShellFolder::IID {
-                                    println!("found IShellFolder")
-                                } else if guid == IShellBrowser::IID {
-                                    println!("found IShellBrowser")
-                                } else if guid == IWebBrowser2::IID {
-                                    println!("found IWebBrowser2")
-                                } else if guid == IServiceProvider::IID {
-                                    println!("found IServiceProvider")
-                                } else {
-                                    println!("found other interface: {:?}", guid);
-                                }
-                            }
-                        }
-                    }
-
-                    let web_browser2 = dispatch.cast::<IWebBrowser2>();
-                    match web_browser2 {
-                        Ok(web_browser2) => {
-                            let web_browser_hwnd = web_browser2.HWND();
-                            let web_browser_document = web_browser2.Document();
-                            let name = web_browser2.FullName();
-                            let app = web_browser2.Application();
-                            if web_browser_document.is_ok() && web_browser_hwnd.is_ok() {
-                                let document = web_browser_document.unwrap();
-                                // if document_window.unwrap() == hwnd {
-                                //     let shell_view = web_browser2.query_active_shell_view();
-                                //     println!("shell_viewis {:?}", shell_view);
-                                // }
-                            }
-                        }
-                        Err(e) => {
-                            println!("Failed to cast IWebBrowser2, Err info {:?}", e);
-                        }
-                    }
-                    // let shell_browser = dispatch.cast::<IShellBrowser>();
-                    // match shell_browser {
-                    //     Ok(shell_browser) => {
-                    //         // 直接从 IShellBrowser 获取 IShellView
-                    //         let shell_view_hwnd = shell_browser.GetWindow();
-                    //         if shell_view_hwnd.unwrap() == hwnd {
-                    //             let shell_view = shell_browser.QueryActiveShellView();
-                    //             if shell_view.is_ok() {
-                    //                 found_shell_view = shell_view.ok(); // 找到 IShellView，返回
-                    //                 break;
-                    //             }
-                    //         }
-                    //     }
-                    //     Err(e) => {
-                    //         println!("Failed to cast IShellBrowser, Err info {:?}", e);
-                    //     }
-                    // }
-                }
+            let shell_browser: Result<IShellBrowser, _> = IUnknown_QueryService(&dispatch.unwrap(), &SID_STopLevelBrowser);
+            if shell_browser.is_err() {
+                CoUninitialize(); // 清理 COM
+                return None;
+            }
+            let shell_view = shell_browser.unwrap().QueryActiveShellView();
+            if shell_view.is_ok() {
+                let shell_view = shell_view.unwrap();
+                // let shell_view_window = shell_view.GetWindow();
+                // println!("shell_view_window is {:?}", shell_view_window.clone().unwrap());
+                // if shell_view_window.is_ok() && shell_view_window.unwrap() == hwnd {
+                //     println!("shell_view is {:?}", &shell_view);
+                //     found_shell_view = Some(shell_view);
+                // }
+                println!("shell_view is {:?}", &shell_view);
+                found_shell_view = Some(shell_view);
             }
             // 清理 COM
             CoUninitialize();
@@ -465,46 +480,62 @@ impl PreviewFile {
     // This function retrieves the selected file from the IShellView.
     fn get_selected_file_from_shell_view(shell_view: IShellView) -> Option<String> {
         unsafe {
-            let enum_id_list: Result<IEnumIDList, windows::core::Error> =
-                shell_view.GetItemObject(SVGIO_SELECTION);
-            if enum_id_list.is_err() {
+            let _ = CoInitializeEx(None, COINIT_DISABLE_OLE1DDE);
+            let p_folder_view = std::ptr::null_mut();
+            let ret = shell_view.query(&IFolderView::IID, p_folder_view);
+
+            if ret != S_OK {
+                CoUninitialize();
+                return None;
+            }
+
+            println!("p_folder_view is {:?}", p_folder_view);
+
+            // let p_folder_view = IFolderView::from_raw(p_folder_view);
+            // let folder = p_folder_view.GetFolder();
+            // if folder.is_err() {
+            //     continue;
+            // }
+            // let folder: IPersistFolder2 = folder.unwrap();
+            // let pidl = folder.GetCurFolder();
+            // if pidl.is_err() {
+            //     continue;
+            // }
+            // let pidl = pidl.unwrap();
+            // let path = SHGetNameFromIDList(pidl, SIGDN_FILESYSPATH);
+            // if path.is_err() {
+            //     continue;
+            // }
+            // let path = path.unwrap();
+            // let path = path.as_wide();
+            // folder_cur_path = String::from_utf16_lossy(path);
+
+            let item  = shell_view.GetItemObject::<IShellItem>(SVGIO_SELECTION);
+
+            if item.is_err() {
+                CoUninitialize();
                 return None;
             }
 
             let shell_folder = SHGetDesktopFolder();
             if shell_folder.is_err() {
+                CoUninitialize();
                 return None;
             }
 
             let shell_folder = shell_folder.unwrap();
 
-            // Enumerate through the selected items
-            let mut pidl_array: [*mut ITEMIDLIST; 1] = [null_mut()];
-            let mut fetched: u32 = 0;
-
-            while enum_id_list
-                .as_ref()
-                .unwrap()
-                .Next(&mut pidl_array, Some(&mut fetched))
-                .is_ok()
-                && fetched > 0
-            {
-                let mut strret = STRRET {
-                    uType: 0,
-                    Anonymous: Default::default(),
-                };
-
-                if let Some(file_path) =
-                    Self::strret_to_string(&shell_folder, pidl_array[0], &mut strret)
-                {
-                    // 在返回之前释放 pidl_array[0] 内存
-                    let _ = CoTaskMemFree(Some(pidl_array[0] as *mut std::ffi::c_void));
-                    return Some(file_path);
-                }
-
-                // 释放每次获取的 ITEMIDLIST 内存
-                let _ = CoTaskMemFree(Some(pidl_array[0] as *mut std::ffi::c_void));
+            // 获取路径
+            let display_name_ptr  = item.unwrap().GetDisplayName(windows::Win32::UI::Shell::SIGDN_FILESYSPATH);
+            if display_name_ptr.is_err() {
+                println!("Error: {:?}", display_name_ptr.err());
+                CoUninitialize();
+                return None;
             }
+            let display_name_ptr  = display_name_ptr .unwrap();
+            // 将路径转换为字符串并打印
+            let path_str = String::from_utf16_lossy(std::slice::from_raw_parts(display_name_ptr.0, (0..).take_while(|&i| *display_name_ptr.0.offset(i) != 0).count()));
+            println!("选中的文件路径: {}", path_str.trim_matches(char::from(0)));
         }
         None
     }
