@@ -8,6 +8,8 @@
     "plugins:build": "cd ./plugins && pnpm build",
     "plugins:copy": "node scripts/index.mjs",
     "plugins": "run-p plugins:install plugins:build plugins:copy",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
