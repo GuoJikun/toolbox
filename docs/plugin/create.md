@@ -50,7 +50,7 @@
     "author": "string",
     "email": "string",
     "homepage": "string",
-    "primission": ["core:default"],
+    "permission": ["core:default"],
     "windowConfig": {
         "fullscreen": true,
         "alwaysOnTop": true,
@@ -103,7 +103,7 @@
 
 插件的地址
 
-### primission
+### permission
 
 插件的权限，用来生成 [`tauri`](https://beta.tauri.app/start/) 中 [`capabilities`](<https://beta.tauri.app/security/capabilities/>) 文件
 
