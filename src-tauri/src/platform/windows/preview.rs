@@ -1,13 +1,16 @@
 use std::{ffi::OsString, os::windows::ffi::OsStringExt, ptr::null_mut};
 use tauri::{AppHandle, Manager};
+use windows::Win32::UI::Controls;
+use windows::Win32::UI::Controls::LVITEMW;
+use windows::Win32::UI::Shell::IFolderView;
 use windows::{
     core::{IUnknown, Interface, GUID, PCWSTR, PWSTR, VARIANT},
     Win32::{
-        Foundation::{BOOL, HWND, LPARAM, LRESULT, WPARAM,S_OK},
+        Foundation::{BOOL, HWND, LPARAM, LRESULT, S_OK, WPARAM},
         System::{
             Com::{
-                CoCreateInstance, CoInitializeEx,CLSCTX_LOCAL_SERVER, CoTaskMemFree, CoUninitialize, IDispatch,
-                IServiceProvider, CLSCTX_ALL, CLSCTX_INPROC_SERVER,
+                CoCreateInstance, CoInitializeEx, CoTaskMemFree, CoUninitialize, IDispatch,
+                IServiceProvider, CLSCTX_ALL, CLSCTX_INPROC_SERVER, CLSCTX_LOCAL_SERVER,
                 COINIT_APARTMENTTHREADED, COINIT_DISABLE_OLE1DDE,
             },
             Memory,
@@ -16,20 +19,16 @@ use windows::{
             Input::KeyboardAndMouse,
             Shell::{
                 Common::{ITEMIDLIST, STRRET},
-                IEnumIDList, IInitializeWithItem, IPreviewHandler, IShellBrowser,
-                IShellFolder, IShellItem, IShellView, IShellWindows,
-                IWebBrowser2, SHCreateItemFromParsingName, SHGetDesktopFolder, ShellWindows,
-                SHGDN_FORPARSING, SVGIO_SELECTION, SWC_DESKTOP, SWC_EXPLORER, SWFO_NEEDDISPATCH,
-                IUnknown_QueryService, SID_STopLevelBrowser, SHGetSpecialFolderLocation, IShellFolderViewDual
-
+                IEnumIDList, IInitializeWithItem, IPreviewHandler, IShellBrowser, IShellFolder,
+                IShellFolderViewDual, IShellItem, IShellView, IShellWindows, IUnknown_QueryService,
+                IWebBrowser2, SHCreateItemFromParsingName, SHGetDesktopFolder,
+                SHGetSpecialFolderLocation, SID_STopLevelBrowser, ShellWindows, SHGDN_FORPARSING,
+                SVGIO_SELECTION, SWC_DESKTOP, SWC_EXPLORER, SWFO_NEEDDISPATCH,
             },
             WindowsAndMessaging,
         },
     },
 };
-use windows::Win32::UI::Controls;
-use windows::Win32::UI::Controls::LVITEMW;
-use windows::Win32::UI::Shell::IFolderView;
 
 #[derive(Debug)]
 pub struct PreviewFile {
@@ -227,7 +226,6 @@ impl PreviewFile {
         return String::from_utf16_lossy(&u16.as_slice());
     }
 
-
     fn get_lpsz_class(str: &str) -> PCWSTR {
         return PCWSTR::from_raw(str.encode_utf16().collect::<Vec<u16>>().as_ptr());
     }
@@ -242,7 +240,12 @@ impl PreviewFile {
             };
 
             // 发送消息
-            let result = WindowsAndMessaging::SendMessageW(hwnd, WindowsAndMessaging::WM_COPYDATA, WPARAM(0x00000060), LPARAM(&mut cds as *const _ as isize));
+            let result = WindowsAndMessaging::SendMessageW(
+                hwnd,
+                WindowsAndMessaging::WM_COPYDATA,
+                WPARAM(0x00000060),
+                LPARAM(&mut cds as *const _ as isize),
+            );
             println!("Received path: {}", result.0);
             // 处理结果
             if result.0 != 0 {
@@ -254,13 +257,11 @@ impl PreviewFile {
                 // let path = windows::core::HSTRING::from_wide(path_ptr);
                 // let file_path: String = path.unwrap().to_string_lossy().into();
                 return Some("file_path".into());
-
             }
         }
         None
     }
     fn get_selected_file() -> Option<String> {
-
         unsafe {
             let hwnd = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
             println!("hwnd is {:?}", hwnd);
@@ -273,7 +274,7 @@ impl PreviewFile {
                 // return Self::get_selected_file_path(hwnd);
                 // 获取选中的文件路径
 
-                let path =  Self::get_shell_view(hwnd);
+                let path = Self::get_select_file_path(hwnd);
                 println!("路径 is {:?}", path);
 
                 if let Some(shell_view) = Self::get_shell_view(hwnd) {
@@ -293,7 +294,6 @@ impl PreviewFile {
         }
         String::from_utf16_lossy(&buffer)
     }
-
 
     // 检查 IDispatch 对象是否包含特定接口
     fn check_interface(dispatch: &IDispatch, interface_guid: &GUID) -> bool {
@@ -316,108 +316,8 @@ impl PreviewFile {
         }
         false
     }
-    fn get_explorer_show_path() -> String {
-        // debug!("enter get_explorer_show_path");
-        let mut folder_cur_path = "none".to_string();
-        unsafe {
-            let foreground_window = WindowsAndMessaging::GetForegroundWindow();
-            let mut class_name = [0; 260];
-            WindowsAndMessaging::GetClassNameW(foreground_window, &mut class_name);
-            let pos = class_name.iter().position(|c| *c == 0).unwrap();
-            let class_name = String::from_utf16_lossy(&class_name[0..pos]);
-            if class_name != "CabinetWClass" {
-                // debug!("not explorer window：{}", class_name);
-                return folder_cur_path;
-            }
-            // debug!("find explorer windows");
-            let _ = CoInitializeEx(None, COINIT_DISABLE_OLE1DDE);
-            let psh_windows = CoCreateInstance(&ShellWindows, None, windows::Win32::System::Com::CLSCTX_LOCAL_SERVER);
-            if psh_windows.is_err() {
-                CoUninitialize();
-                return folder_cur_path;
-            }
-            let psh_windows: IShellWindows = psh_windows.unwrap();
-            let count = psh_windows.Count();
-            if count.is_err() {
-                CoUninitialize();
-                return folder_cur_path;
-            }
-            let count: i32 = count.unwrap();
-            for i in 0..count {
-                let i = VARIANT::from(i);
 
-                let disp = psh_windows.Item(&i);
-                if disp.is_err() {
-                    // error!("{}", disp.unwrap_err());
-                    continue;
-                }
-                let disp = disp.unwrap();
-                let mut p_app = std::ptr::null_mut();
-                let ret = disp.query(&IWebBrowser2::IID, &mut p_app);
-                if ret != windows::Win32::Foundation::S_OK {
-                    continue;
-                }
-                let p_app = IWebBrowser2::from_raw(p_app);
-                let win_hwnd = p_app.HWND();
-                if win_hwnd.is_err() {
-                    continue;
-                }
-                let win_hwnd = win_hwnd.unwrap();
-                if win_hwnd.0 != foreground_window.0 as isize {
-                    continue;
-                }
-                let mut psp = std::ptr::null_mut();
-                let ret = p_app.query(&IServiceProvider::IID, &mut psp);
-                if ret != windows::Win32::Foundation::S_OK {
-                    continue;
-                }
-                let psp = IServiceProvider::from_raw(psp);
-                let browser = psp.QueryService(&IShellBrowser::IID);
-                if browser.is_err() {
-                    continue;
-                }
-                let browser: IShellBrowser = browser.unwrap();
-                let shell_view = browser.QueryActiveShellView();
-                if shell_view.is_err() {
-                    continue;
-                }
-                let shell_view = shell_view.unwrap();
-
-
-
-
-                let mut p_folder_view = std::ptr::null_mut();
-                let ret = shell_view.query(&windows::Win32::UI::Shell::IFolderView::IID, &mut p_folder_view);
-                if ret != windows::Win32::Foundation::S_OK {
-                    continue;
-                }
-                let p_folder_view = windows::Win32::UI::Shell::IFolderView::from_raw(p_folder_view);
-                let folder = p_folder_view.GetFolder();
-                let tmp = p_folder_view.GetFocusedItem();
-                println!("tmp:{:?}", tmp.unwrap());
-                if folder.is_err() {
-                    continue;
-                }
-                let folder: windows::Win32::UI::Shell::IPersistFolder2 = folder.unwrap();
-                let pidl = folder.GetCurFolder();
-                if pidl.is_err() {
-                    continue;
-                }
-                let pidl = pidl.unwrap();
-                let path = windows::Win32::UI::Shell::SHGetNameFromIDList(pidl, windows::Win32::UI::Shell::SIGDN_FILESYSPATH);
-                if path.is_err() {
-                    continue;
-                }
-                let path = path.unwrap();
-                let path = path.as_wide();
-                folder_cur_path = String::from_utf16_lossy(path);
-                break;
-            }
-            CoUninitialize();
-        };
-        return folder_cur_path;
-    }
-    fn get_shell_view(hwnd: HWND) -> Option<String> {
+    fn get_select_file_path(hwnd: HWND) -> Option<String> {
         unsafe {
             // 初始化 COM 库
             let com = CoInitializeEx(None, COINIT_DISABLE_OLE1DDE);
@@ -425,7 +325,8 @@ impl PreviewFile {
                 return None;
             }
 
-            let hr: Result<IShellWindows, windows::core::Error> = CoCreateInstance(&ShellWindows, None, CLSCTX_LOCAL_SERVER);
+            let hr: Result<IShellWindows, windows::core::Error> =
+                CoCreateInstance(&ShellWindows, None, CLSCTX_LOCAL_SERVER);
             // let hr = CoCreateInstance(&ShellWindows, None, CLSCTX_INPROC_HANDLER);
             if hr.is_err() {
                 println!("创建 IShellWindows 失败");
@@ -434,15 +335,13 @@ impl PreviewFile {
             }
             let shell_windows = hr.unwrap();
 
-            let mut found_shell_view = None;
+            let mut target_path = None;
             let count = shell_windows.Count().unwrap_or_default();
-            println!("窗口数量：{}", count);
+
             for i in 0..count {
                 let variant = VARIANT::from(i);
                 let window: IDispatch = shell_windows.Item(&variant).ok()?;
-                // 尝试获取IWebBrowser2接口
                 let web_browser: IWebBrowser2 = window.cast().ok()?;
-
                 // 通过IWebBrowser2获取文件夹视图并获取选中的项目
                 let document = web_browser.Document().ok()?;
                 let folder_view: IShellFolderViewDual = document.cast().ok()?;
@@ -451,106 +350,19 @@ impl PreviewFile {
 
                 let selected_items = folder_view.SelectedItems().ok()?;
                 let count = selected_items.Count().ok()?;
-                println!("选中文件数量：{}", count);
                 if count > 0 {
                     let item = selected_items.Item(&VARIANT::from(0)).ok()?;
                     let path = item.Path().ok()?;
-
-                    return Some(path.to_string());
+                    target_path = Some(path.to_string());
                 }
             }
             // 清理 COM
             CoUninitialize();
             // 返回找到的 IShellView 或 None
-            found_shell_view
+            target_path
         }
     }
 
-
-    // This function converts a STRRET to a Rust String.
-    fn strret_to_string(
-        shell_folder: &IShellFolder,
-        pidl: *mut ITEMIDLIST,
-        strret: &mut STRRET,
-    ) -> Option<String> {
-        unsafe {
-            let hresult = shell_folder.GetDisplayNameOf(pidl, SHGDN_FORPARSING, strret);
-            if hresult.is_err() {
-                return None;
-            }
-
-            match strret.uType {
-                _strret_type_str => {
-                    let p_str = &strret.Anonymous.cStr as *const _ as *const u16;
-                    let wide_str = std::slice::from_raw_parts(p_str, strret.uType as usize / 2);
-                    Some(OsString::from_wide(wide_str).to_string_lossy().into_owned())
-                } // _ => None,
-            }
-        }
-    }
-
-    // This function retrieves the selected file from the IShellView.
-    fn get_selected_file_from_shell_view(shell_view: IShellView) -> Option<String> {
-        unsafe {
-            let _ = CoInitializeEx(None, COINIT_DISABLE_OLE1DDE);
-            let p_folder_view = std::ptr::null_mut();
-            let ret = shell_view.query(&IFolderView::IID, p_folder_view);
-
-            if ret != S_OK {
-                CoUninitialize();
-                return None;
-            }
-
-            println!("p_folder_view is {:?}", p_folder_view);
-
-            // let p_folder_view = IFolderView::from_raw(p_folder_view);
-            // let folder = p_folder_view.GetFolder();
-            // if folder.is_err() {
-            //     continue;
-            // }
-            // let folder: IPersistFolder2 = folder.unwrap();
-            // let pidl = folder.GetCurFolder();
-            // if pidl.is_err() {
-            //     continue;
-            // }
-            // let pidl = pidl.unwrap();
-            // let path = SHGetNameFromIDList(pidl, SIGDN_FILESYSPATH);
-            // if path.is_err() {
-            //     continue;
-            // }
-            // let path = path.unwrap();
-            // let path = path.as_wide();
-            // folder_cur_path = String::from_utf16_lossy(path);
-
-            let item  = shell_view.GetItemObject::<IShellItem>(SVGIO_SELECTION);
-
-            if item.is_err() {
-                CoUninitialize();
-                return None;
-            }
-
-            let shell_folder = SHGetDesktopFolder();
-            if shell_folder.is_err() {
-                CoUninitialize();
-                return None;
-            }
-
-            let shell_folder = shell_folder.unwrap();
-
-            // 获取路径
-            let display_name_ptr  = item.unwrap().GetDisplayName(windows::Win32::UI::Shell::SIGDN_FILESYSPATH);
-            if display_name_ptr.is_err() {
-                println!("Error: {:?}", display_name_ptr.err());
-                CoUninitialize();
-                return None;
-            }
-            let display_name_ptr  = display_name_ptr .unwrap();
-            // 将路径转换为字符串并打印
-            let path_str = String::from_utf16_lossy(std::slice::from_raw_parts(display_name_ptr.0, (0..).take_while(|&i| *display_name_ptr.0.offset(i) != 0).count()));
-            println!("选中的文件路径: {}", path_str.trim_matches(char::from(0)));
-        }
-        None
-    }
     pub fn selected_file(&self) -> Option<&String> {
         self.selected_file.as_ref()
     }
