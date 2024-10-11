@@ -276,13 +276,6 @@ impl PreviewFile {
 
                 let path = Self::get_select_file_path(hwnd);
                 println!("路径 is {:?}", path);
-
-                if let Some(shell_view) = Self::get_shell_view(hwnd) {
-                    println!("shell_view is {:?}", shell_view);
-                    // 获取当前选中的文件路径
-                    // let selected_file = Self::get_selected_file_from_shell_view(shell_view);
-                    return None;
-                }
             }
         };
         None
