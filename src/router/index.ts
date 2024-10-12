@@ -30,7 +30,13 @@ const routes: RouteRecordRaw[] = [
         name: 'search',
         component: Search
     },
-    plugins
+    plugins,
+    {
+        path: '/preview',
+        name: 'preview',
+        component: () => import('@/views/preview/layout.vue'),
+        meta: {title: "预览窗口"}
+    }
 ]
 
 export default createRouter({

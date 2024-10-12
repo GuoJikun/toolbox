@@ -12,5 +12,5 @@ pub mod platform;
 
 #[allow(unused)]
 pub use platform::{
-    cleanup_preview_file, init_preview_file, App, Installed, PreviewFile, Screenshot,
+    PreviewFile, App, Installed, Screenshot, init_preview_file,
 };
