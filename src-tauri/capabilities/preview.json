@@ -1,0 +1,30 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "preview-window-capability",
+  "platforms": [
+    "macOS",
+    "windows",
+    "linux"
+  ],
+  "windows": ["preview"],
+  "local": true,
+  "permissions": [
+    "core:default",
+    "global-shortcut:default",
+    "autostart:default",
+    "cli:default",
+    "dialog:default",
+    "fs:default",
+    "shell:default",
+    "core:window:allow-get-all-windows",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-start-dragging",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-minimize",
+    "core:window:allow-close",
+    "core:window:allow-create",
+    "core:window:allow-is-visible",
+    "core:window:allow-set-focus"
+  ]
+}
