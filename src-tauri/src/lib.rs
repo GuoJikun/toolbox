@@ -19,7 +19,6 @@ mod utils;
 use utils::{capability, shortcut};
 
 mod platform;
-use platform::{cleanup_preview_file, init_preview_file};
 
 #[command]
 fn add_acl() {
@@ -57,6 +56,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_cli::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             let store_path = app
                 .path()
@@ -99,8 +99,6 @@ pub fn run() {
             capability::generate(app)?;
             // 添加插件的权限
             capability::add(app);
-            // 按空格预览文件功能
-            init_preview_file(app.handle().clone());
             // cli
             match app.cli().matches() {
                 // `matches` here is a Struct with { args, subcommand }.
@@ -119,9 +117,8 @@ pub fn run() {
         })
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::CloseRequested { .. } => {
-                cleanup_preview_file();
                 let label = window.label();
-                if label == "previewFile" {
+                if label == "preview" {
                     let _ = window.close();
                 }
                 utils::kill_server_by_name("caddy");

@@ -3,7 +3,7 @@ layout: home
 
 hero:
     name: Toolbox
-    tagline: 一个由 tauri 开发的通用工具软件
+    tagline: 一个由 tauri 开发的通用工具软件（开发中）
 
     actions:
         -   theme: brand
@@ -20,4 +20,3 @@ features:
     -   title: 插件 
         details: 拥有插件体系，可以轻易开发新功能
 ---
-
