@@ -1,3 +1,5 @@
+use std::sync::mpsc;
+use std::thread;
 use tauri::{AppHandle, Emitter, Error as TauriError, Manager};
 use windows::{
     core::{w, Interface, VARIANT, Error as WError},
@@ -6,7 +8,7 @@ use windows::{
         System::{
             Com::{
                 CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch,
-                IServiceProvider, COINIT_MULTITHREADED, CLSCTX_SERVER
+                IServiceProvider, COINIT_MULTITHREADED, CLSCTX_SERVER, COINIT_APARTMENTTHREADED
             },
         },
         UI::{
@@ -29,7 +31,9 @@ struct Selected;
 
 impl Selected {
     pub fn new () -> Option<String> {
-        Self::get_selected_file()
+        let path = Self::get_selected_file();
+        println!("path: {:?}", path);
+        return path;
     }
 
     fn get_selected_file() -> Option<String> {
@@ -69,46 +73,54 @@ impl Selected {
     }
 
     unsafe fn get_select_file_from_explorer() -> Result<String, WError> {
-        // 初始化 COM 库
-        CoInitializeEx(None, COINIT_MULTITHREADED).ok()?;
-        let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
-        let shell_windows: IShellWindows = CoCreateInstance(&ShellWindows, None, CLSCTX_SERVER)?;
-        let result_hwnd = WindowsAndMessaging::FindWindowExW(hwnd_gfw, None, w!("ShellTabWindowClass"), None)?;
+        let (tx, rx) = mpsc::channel();
 
-        let mut target_path = String::new();
-        let count = shell_windows.Count().unwrap_or_default();
+        // 在新的线程中执行 COM 操作
+        thread::spawn(move || {
+            // 在子线程中初始化 COM 库为单线程单元
+            let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
 
-        for i in 0..count {
-            let variant = VARIANT::from(i);
-            let window: IDispatch = shell_windows.Item(&variant)?;
-            let web_browser = window.cast::<IWebBrowser2>()?;
-            let mut service_provider: Option<IServiceProvider> = None;
-            window.query(&IServiceProvider::IID, &mut service_provider as *mut _ as *mut _).ok()?;
-            if service_provider.is_none() {
-                continue;
-            }
-            let shell_browser = service_provider.unwrap().QueryService::<IShellBrowser>(&IShellBrowser::IID);
-            if shell_browser.is_err() {
-                continue;
-            }
-            let shell_browser = shell_browser?;
-            let phwnd = web_browser.HWND()?;
-            if hwnd_gfw.0 as isize != phwnd.0 && result_hwnd.0 as isize != phwnd.0 {
-                continue;
-            }
-            let shell_view = shell_browser.QueryActiveShellView()?;
-            let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION)?;
+            let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow();
+            let shell_windows: IShellWindows = CoCreateInstance(&ShellWindows, None, CLSCTX_SERVER).unwrap();
+            let result_hwnd = WindowsAndMessaging::FindWindowExW(hwnd_gfw, None, w!("ShellTabWindowClass"), None).unwrap();
 
-            let count = shell_items.GetCount().unwrap_or_default();
+            let mut target_path = String::new();
+            let count = shell_windows.Count().unwrap_or_default();
+
             for i in 0..count {
-                let shell_item = shell_items.GetItemAt(i)?;
-                let display_name = shell_item.GetDisplayName(SIGDN_FILESYSPATH)?;
-                target_path = display_name.to_string()?;
-                break;
+                let variant = VARIANT::from(i);
+                let window: IDispatch = shell_windows.Item(&variant).unwrap();
+                let web_browser = window.cast::<IWebBrowser2>().unwrap();
+                let mut service_provider: Option<IServiceProvider> = None;
+                window.query(&IServiceProvider::IID, &mut service_provider as *mut _ as *mut _).ok().unwrap();
+                if service_provider.is_none() {
+                    continue;
+                }
+                let shell_browser = service_provider.unwrap().QueryService::<IShellBrowser>(&IShellBrowser::IID).unwrap();
+
+                // 调用 GetWindow 可能会阻塞 GUI 消息
+                let phwnd = shell_browser.GetWindow().unwrap();
+                if hwnd_gfw.0 != phwnd.0 && result_hwnd.0 != phwnd.0 {
+                    continue;
+                }
+
+                let shell_view = shell_browser.QueryActiveShellView().unwrap();
+                let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION).unwrap();
+
+                let count = shell_items.GetCount().unwrap_or_default();
+                for i in 0..count {
+                    let shell_item = shell_items.GetItemAt(i).unwrap();
+                    let display_name = shell_item.GetDisplayName(SIGDN_FILESYSPATH).unwrap();
+                    target_path = display_name.to_string().unwrap();
+                    break;
+                }
             }
-        }
-        // 清理 COM
-        CoUninitialize();
+
+            CoUninitialize();
+            tx.send(target_path).unwrap();
+        });
+
+        let target_path = rx.recv().unwrap();
 
         Ok(target_path)
     }
