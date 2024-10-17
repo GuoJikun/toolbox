@@ -1,21 +1,17 @@
-use std::io::Error;
 use tauri::{AppHandle, Emitter, Error as TauriError, Manager};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, Code, ShortcutState};
 use windows::{
-    core::{Interface, GUID, VARIANT},
+    core::{w, Interface, VARIANT, Error as WError},
     Win32::{
         Foundation::{ HWND, LPARAM, LRESULT, WPARAM },
         System::{
             Com::{
                 CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch,
-                 CLSCTX_LOCAL_SERVER,
-                COINIT_DISABLE_OLE1DDE,
+                IServiceProvider, COINIT_MULTITHREADED, CLSCTX_SERVER
             },
         },
         UI::{
             Shell::{
-                IShellFolderViewDual, IShellWindows,
-                IWebBrowser2, ShellWindows,
+                IShellWindows, IWebBrowser2, ShellWindows, IShellBrowser, IShellItemArray, SIGDN_FILESYSPATH, SVGIO_SELECTION, SWFO_NEEDDISPATCH
             },
             WindowsAndMessaging,
             Input::KeyboardAndMouse
@@ -25,92 +21,149 @@ use windows::{
 
 #[derive(Debug)]
 pub struct PreviewFile {
-    selected_file: Option<String>,                   // 存储选中的文件路径
     hook_handle: Option<WindowsAndMessaging::HHOOK>, // 钩子的句柄
     app_handle: Option<AppHandle>,
 }
 
-struct Explorer;
+struct Selected;
 
-impl Explorer {
+impl Selected {
     pub fn new () -> Option<String> {
         Self::get_selected_file()
     }
 
     fn get_selected_file() -> Option<String> {
-        let mut path = None;
-        unsafe {
-            let hwnd = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
-            let class_name_str = Self::get_window_name(hwnd);
-            if class_name_str.contains("CabinetWClass") || class_name_str.contains("Progman") {
-                // 窗口是文件管理器或桌面，开始获取选中的文件
-                path = Self::get_select_file_path(hwnd);
+        if let Some(focused_type) = Self::get_focused_type() {
+            return match focused_type.as_str() {
+                "explorer" => {
+                    unsafe { Self::get_select_file_from_explorer().ok() }
+                },
+                "desktop" => {
+                    unsafe { Self::get_select_file_from_desktop().ok() }
+                },
+                _ => {
+                    None
+                }
             }
-        };
-        path
+        }
+        None
     }
+    fn get_focused_type() -> Option<String> {
+        let mut type_str: Option<String> = None;
+        let hwnd_gfw = unsafe {WindowsAndMessaging::GetForegroundWindow()};
+        let class_name = Self::get_window_name(hwnd_gfw);
+        if class_name.contains("CabinetWClass") {
+            type_str = Some("explorer".to_string());
+        } else if class_name.contains("Progman") {
+            type_str = Some("desktop".to_string());
+        }
+        type_str
+    }
+
     fn get_window_name(hwnd: HWND) -> String {
         let mut buffer = [0u16; 256];
-        unsafe {
-            WindowsAndMessaging::GetClassNameW(hwnd, &mut buffer);
-        }
-        String::from_utf16_lossy(&buffer)
+        let len = unsafe {
+            WindowsAndMessaging::GetClassNameW(hwnd, &mut buffer)
+        };
+        String::from_utf16_lossy(&buffer[..len as usize])
     }
 
-    fn get_select_file_path(hwnd: HWND) -> Option<String> {
-        unsafe {
-            // 初始化 COM 库
-            let com = CoInitializeEx(None, COINIT_DISABLE_OLE1DDE);
-            if com.is_err() {
-                return None;
+    unsafe fn get_select_file_from_explorer() -> Result<String, WError> {
+        // 初始化 COM 库
+        CoInitializeEx(None, COINIT_MULTITHREADED).ok()?;
+        let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
+        let shell_windows: IShellWindows = CoCreateInstance(&ShellWindows, None, CLSCTX_SERVER)?;
+        let result_hwnd = WindowsAndMessaging::FindWindowExW(hwnd_gfw, None, w!("ShellTabWindowClass"), None)?;
+
+        let mut target_path = String::new();
+        let count = shell_windows.Count().unwrap_or_default();
+
+        for i in 0..count {
+            let variant = VARIANT::from(i);
+            let window: IDispatch = shell_windows.Item(&variant)?;
+            let web_browser = window.cast::<IWebBrowser2>()?;
+            let mut service_provider: Option<IServiceProvider> = None;
+            window.query(&IServiceProvider::IID, &mut service_provider as *mut _ as *mut _).ok()?;
+            if service_provider.is_none() {
+                continue;
             }
-
-            let hr: Result<IShellWindows, windows::core::Error> =
-                CoCreateInstance(&ShellWindows, None, CLSCTX_LOCAL_SERVER);
-            // let hr = CoCreateInstance(&ShellWindows, None, CLSCTX_INPROC_HANDLER);
-            if hr.is_err() {
-                println!("创建 IShellWindows 失败");
-                CoUninitialize(); // 清理 COM
-                return None; // 创建 IShellWindows 失败
+            let shell_browser = service_provider.unwrap().QueryService::<IShellBrowser>(&IShellBrowser::IID);
+            if shell_browser.is_err() {
+                continue;
             }
-            let shell_windows = hr.unwrap();
+            let shell_browser = shell_browser?;
+            let phwnd = web_browser.HWND()?;
+            if hwnd_gfw.0 as isize != phwnd.0 && result_hwnd.0 as isize != phwnd.0 {
+                continue;
+            }
+            let shell_view = shell_browser.QueryActiveShellView()?;
+            let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION)?;
 
-            let mut target_path = None;
-            let count = shell_windows.Count().unwrap_or_default();
-
+            let count = shell_items.GetCount().unwrap_or_default();
             for i in 0..count {
-                let variant = VARIANT::from(i);
-                let window: IDispatch = shell_windows.Item(&variant).ok()?;
-                let web_browser: IWebBrowser2 = window.cast().ok()?;
-                // 检查窗口是否与当前活动窗口匹配
-                let item_hwnd = web_browser.HWND().ok()?;
-                if item_hwnd.0 != hwnd.0 as isize {
-                    continue;
-                }
-                // 通过IWebBrowser2获取文件夹视图并获取选中的项目
-                let document = web_browser.Document().ok()?;
-                let folder_view: IShellFolderViewDual = document.cast().ok()?;
-
-
-                let selected_items = folder_view.SelectedItems().ok()?;
-                let count = selected_items.Count().ok()?;
-                // for i in 0..count {
-                //     let variant = VARIANT::from(i);
-                //     let item: FolderItem = selected_items.Item(&variant).ok()?;
-                //     let path = item.Path().ok()?;
-                //     println!("Selected item path: {}", path.to_string());
-                // }
-                if count > 0 {
-                    let item = selected_items.Item(&VARIANT::from(0)).ok()?;
-                    let path = item.Path().ok()?;
-                    target_path = Some(path.to_string());
-                    break
-                }
+                let shell_item = shell_items.GetItemAt(i)?;
+                let display_name = shell_item.GetDisplayName(SIGDN_FILESYSPATH)?;
+                target_path = display_name.to_string()?;
+                break;
             }
-            // 清理 COM
-            CoUninitialize();
-            target_path
         }
+        // 清理 COM
+        CoUninitialize();
+
+        Ok(target_path)
+    }
+
+    unsafe fn get_select_file_from_desktop() -> Result<String, WError>{
+        // 初始化 COM 库
+        CoInitializeEx(None, COINIT_MULTITHREADED).ok()?;
+        let mut target_path = String::new();
+        let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
+        let shell_windows: IShellWindows = CoCreateInstance(&ShellWindows, None, CLSCTX_SERVER)?;
+
+        let pvar_loc: VARIANT = windows::Win32::System::Variant::VariantInit();
+
+        // 获取活动窗口
+        let mut phwnd: i32 = 0;
+        let dispatch = shell_windows.FindWindowSW(
+            &pvar_loc,
+            &pvar_loc,
+            windows::Win32::UI::Shell::SWC_DESKTOP,
+            &mut phwnd,
+            SWFO_NEEDDISPATCH,
+            )?;
+
+
+        let web_browser = dispatch.cast::<IWebBrowser2>()?;
+        let mut service_provider: Option<IServiceProvider> = None;
+        dispatch.query(&IServiceProvider::IID, &mut service_provider as *mut _ as *mut _).ok()?;
+        if service_provider.is_none() {
+            return Ok(target_path)
+        }
+        let shell_browser = service_provider.unwrap().QueryService::<IShellBrowser>(&IShellBrowser::IID)?;
+
+        let phwnd = web_browser.HWND()?;
+        if hwnd_gfw.0 as isize != phwnd.0 {
+            return Ok(target_path)
+        }
+        let shell_view = shell_browser.QueryActiveShellView()?;
+        let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION)?;
+
+        let count = shell_items.GetCount().unwrap_or_default();
+        for i in 0..count {
+            let shell_item = shell_items.GetItemAt(i)?;
+            let display_name = shell_item.GetDisplayName(SIGDN_FILESYSPATH)?;
+            target_path = display_name.to_string()?;
+            break;
+        }
+
+        Ok(target_path)
+    }
+
+}
+
+impl Drop for Selected {
+    fn drop(&mut self) {
+        unsafe  {CoUninitialize()}
     }
 }
 
@@ -161,7 +214,7 @@ impl PreviewFile {
             let vk_code = kb_struct.vkCode;
             let is_explorer_or_desktop=unsafe{
                 let hwnd = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
-                let class_name_str = Explorer::get_window_name(hwnd);
+                let class_name_str = Selected::get_window_name(hwnd);
                 class_name_str.contains("CabinetWClass") || class_name_str.contains("Progman")
             };
             if is_explorer_or_desktop{
@@ -178,7 +231,7 @@ impl PreviewFile {
 
 
     pub fn preview_file(app: AppHandle) -> Result<(), TauriError> {
-        let file_path = Explorer::new();
+        let file_path = Selected::new();
         if file_path.is_none() {
             println!("No file selected")
         }
@@ -193,7 +246,6 @@ impl PreviewFile {
 
     pub fn new() -> Self {
         Self {
-            selected_file: None,
             hook_handle: None,
             app_handle: None,
         }
