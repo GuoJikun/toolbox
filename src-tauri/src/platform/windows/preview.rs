@@ -21,6 +21,9 @@ use windows::{
     },
 };
 
+#[path = "./helper.rs"]
+mod helper;
+
 #[derive(Debug)]
 pub struct PreviewFile {
     hook_handle: Option<WindowsAndMessaging::HHOOK>, // 钩子的句柄
@@ -55,21 +58,13 @@ impl Selected {
     fn get_focused_type() -> Option<String> {
         let mut type_str: Option<String> = None;
         let hwnd_gfw = unsafe {WindowsAndMessaging::GetForegroundWindow()};
-        let class_name = Self::get_window_name(hwnd_gfw);
+        let class_name = helper::get_window_class_name(hwnd_gfw);
         if class_name.contains("CabinetWClass") {
             type_str = Some("explorer".to_string());
         } else if class_name.contains("Progman") {
             type_str = Some("desktop".to_string());
         }
         type_str
-    }
-
-    fn get_window_name(hwnd: HWND) -> String {
-        let mut buffer = [0u16; 256];
-        let len = unsafe {
-            WindowsAndMessaging::GetClassNameW(hwnd, &mut buffer)
-        };
-        String::from_utf16_lossy(&buffer[..len as usize])
     }
 
     unsafe fn get_select_file_from_explorer() -> Result<String, WError> {
@@ -226,7 +221,7 @@ impl PreviewFile {
             let vk_code = kb_struct.vkCode;
             let is_explorer_or_desktop=unsafe{
                 let hwnd = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
-                let class_name_str = Selected::get_window_name(hwnd);
+                let class_name_str = helper::get_window_class_name(hwnd);
                 class_name_str.contains("CabinetWClass") || class_name_str.contains("Progman")
             };
             if is_explorer_or_desktop{

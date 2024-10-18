@@ -33,6 +33,7 @@ walkdir = "2.5.0"
 chrono = "0.4.38"
 image = "0.25.2"
 scrap = "0.5.0"
+infer = { version = "0.16.0", features = ["std"] }
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52.0"
@@ -45,7 +46,6 @@ windows = { version = "0.58.0", features = [
     "Win32_System_Threading",
     "Win32_UI_WindowsAndMessaging",
     "Win32_System_Ole",
-    "Win32_UI_Accessibility"
 ] }
 
 [target.'cfg(target_os = "macos")'.dependencies]

@@ -4585,6 +4585,7 @@ dependencies = [
  "chrono",
  "fs_extra",
  "image",
+ "infer",
  "libloading 0.8.5",
  "md5",
  "memmap2",

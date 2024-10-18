@@ -5,6 +5,8 @@ use tauri::{command, path::BaseDirectory, AppHandle, Manager};
 
 use memmap2::MmapMut;
 use std::fs::OpenOptions;
+use serde_json::json;
+use tauri_plugin_store::JsonValue;
 
 #[path = "platform/mod.rs"]
 mod platform;
@@ -98,4 +100,19 @@ pub fn run_external_program(executable_path: String, args: Vec<String>) -> Resul
     } else {
         Err(result.clone())
     }
+}
+
+#[command]
+pub fn preview_file(path: String) -> Result<utils::preview::File, String> {
+    utils::preview::preview_file(path)
+    // let result = utils::preview::preview_file(path);
+    // if result.is_err() {
+    //     return Err(result.err().unwrap());
+    // }
+    // let file = result.unwrap();
+    // return Ok(json!({
+    //     "matcher_type": file.matcher_type(),
+    //     "path": file.path(),
+    //     "extension": file.extension()
+    // }));
 }

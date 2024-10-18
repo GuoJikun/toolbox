@@ -7,6 +7,7 @@ use walkdir::WalkDir;
 pub mod capability;
 pub mod config;
 pub mod shortcut;
+pub mod preview;
 
 // 获取应用版本号的函数
 #[allow(dead_code)]

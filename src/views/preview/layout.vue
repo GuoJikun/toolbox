@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, shallowRef, type ComponentInstance } from 'vue'
-import { convertFileSrc } from '@tauri-apps/api/core'
+import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { extname } from '@tauri-apps/api/path';
 import { getWindow  } from "@/utils/window"
 import Header from './components/header.vue'
@@ -21,13 +21,23 @@ const isVideo = (path: string) => {
   return videoExtensions.some(ext => path.endsWith(ext))
 }
 
+interface File {
+    path: string
+    file_type: string
+    extension: string
+}
+
 const init = async () => {
   const win = await getWindow('preview')
   win?.listen('file-preview', async (e) => {
 
       const payload = e.payload as string
-      const localePath = convertFileSrc(payload);
+      const file: File = await invoke("preview_file", { path: payload })
+      console.log("file path is ", file);
+      const localePath = convertFileSrc(file.path);
       console.log(localePath)
+
+
       const ext = await extname(payload);
       if (isImage(ext)) {
           componentName.value = ImageSupport

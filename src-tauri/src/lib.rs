@@ -13,7 +13,7 @@ mod dylib;
 use dylib::dynamic_command;
 
 mod command;
-use command::{get_installed_apps, run_external_program, screenshot_desktop};
+use command::{get_installed_apps, run_external_program, screenshot_desktop, preview_file};
 
 mod utils;
 use utils::{capability, shortcut};
@@ -134,7 +134,8 @@ pub fn run() {
             add_acl,
             add_capabilities,
             get_installed_apps,
-            screenshot_desktop
+            screenshot_desktop,
+            preview_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
