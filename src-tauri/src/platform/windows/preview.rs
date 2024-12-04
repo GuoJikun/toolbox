@@ -4,13 +4,11 @@ use tauri::{AppHandle, Emitter, Error as TauriError, Manager};
 use windows::{
     core::{w, Interface, VARIANT, Error as WError},
     Win32::{
-        Foundation::{ HWND, LPARAM, LRESULT, WPARAM },
-        System::{
-            Com::{
+        Foundation::{ LPARAM, LRESULT, WPARAM },
+        System::Com::{
                 CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch,
                 IServiceProvider, COINIT_MULTITHREADED, CLSCTX_SERVER, COINIT_APARTMENTTHREADED
             },
-        },
         UI::{
             Shell::{
                 IShellWindows, IWebBrowser2, ShellWindows, IShellBrowser, IShellItemArray, SIGDN_FILESYSPATH, SVGIO_SELECTION, SWFO_NEEDDISPATCH

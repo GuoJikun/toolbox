@@ -89,6 +89,7 @@ init()
         justify-content: center;
         align-items: center;
         align-content: center;
+        height: 100%;
     }
 }
 </style>

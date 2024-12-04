@@ -13,7 +13,9 @@ const props = withDefaults(defineProps<Props>(),{
 
 <template>
     <div class="video-support">
-        <video :src="props.src" controls></video>
+        <div>
+            <video :src="props.src" controls></video>
+        </div>
     </div>
 </template>
 
@@ -21,6 +23,10 @@ const props = withDefaults(defineProps<Props>(),{
 .video-support {
     width: 100%;
     height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
     & video {
         max-width: 100%;
         max-height: 100%;
