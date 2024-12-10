@@ -1,3 +1,4 @@
+// 动态库/ffi 相关的代码
 use libloading::{Library, Symbol};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
