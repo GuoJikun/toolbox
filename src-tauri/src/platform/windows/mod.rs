@@ -4,7 +4,7 @@ pub use screenshot::Screenshot;
 mod apps;
 pub use apps::{App, Installed};
 
-mod preview;
 mod helper;
+mod preview;
 
-pub use preview::{PreviewFile, init_preview_file};
+pub use preview::{init_preview_file, PreviewFile};

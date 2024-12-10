@@ -7,6 +7,10 @@ export const plugins = {
         {
             path: '/plugins/color-conversion',
             component: () => import('@/views/plugins/color-conversion.vue')
+        },
+        {
+            path: '/plugins/local-server',
+            component: () => import('@/views/plugins/local-server.vue')
         }
     ]
 }

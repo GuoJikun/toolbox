@@ -2,7 +2,6 @@ use std::error::Error;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
-
 use crate::platform;
 
 pub fn bind(app: AppHandle) -> Result<(), Box<dyn Error>> {
@@ -11,26 +10,29 @@ pub fn bind(app: AppHandle) -> Result<(), Box<dyn Error>> {
     // let space = Shortcut::new(None, Code::Space);
     let shortcuts = vec![alt_n_space];
     let handle = app.clone();
-    app.clone().global_shortcut().on_shortcuts(shortcuts, move |_, shortcut, event| {
-        if shortcut == &alt_n_space {
-            match event.state() {
-                ShortcutState::Pressed => {
-                    println!("ALT-SPACE Pressed!");
-                    let search_window = app.clone().get_window("search");
-                    if let Some(search_window) = search_window {
-                        let is_visible = search_window.is_visible().unwrap();
-                        if !is_visible {
-                            search_window.show().unwrap();
-                            search_window.set_focus().unwrap();
+    app.clone()
+        .global_shortcut()
+        .on_shortcuts(shortcuts, move |_, shortcut, event| {
+            if shortcut == &alt_n_space {
+                match event.state() {
+                    ShortcutState::Pressed => {
+                        println!("ALT-SPACE Pressed!");
+                        let search_window = app.clone().get_window("search");
+                        if let Some(search_window) = search_window {
+                            let is_visible = search_window.is_visible().unwrap();
+                            if !is_visible {
+                                search_window.show().unwrap();
+                                search_window.set_focus().unwrap();
+                            }
                         }
                     }
-                }
-                ShortcutState::Released => {
-                    println!("ALT-SPACE Released!");
+                    ShortcutState::Released => {
+                        println!("ALT-SPACE Released!");
+                    }
                 }
             }
-        }
-    }).unwrap();
+        })
+        .unwrap();
     platform::init_preview_file(handle);
     Ok(())
 }

@@ -6,7 +6,7 @@ import { readDir, exists, readTextFile } from '@tauri-apps/plugin-fs'
 import { invoke } from '@tauri-apps/api/core'
 import { formatPath } from '@/utils/index'
 import { getPluginsPath, getPluginPath } from '@/utils/plugin'
-import { PluginConfig, InstalledPkg } from './utils/typescript'
+import type { PluginConfig, InstalledPkg } from './utils/typescript'
 import internalPlugins from '@/data/internal-plugins'
 
 const getPlugins = async () => {

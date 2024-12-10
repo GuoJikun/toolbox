@@ -35,20 +35,6 @@
         "decorations": false,
         "transparent": false,
         "shadow": true
-      },
-      {
-        "title": "预览窗口",
-        "width": 800,
-        "maxHeight": 600,
-        "minHeight": 100,
-        "url": "/preview",
-        "label": "preview",
-        "visible": false,
-        "skipTaskbar": false,
-        "focus": true,
-        "decorations": false,
-        "transparent": false,
-        "shadow": true
       }
     ],
     "security": {
@@ -61,7 +47,9 @@
       "assetProtocol": {
         "enable": true,
         "scope": {
-          "allow": ["**"],
+          "allow": [
+            "**"
+          ],
           "deny": []
         }
       }

@@ -15,5 +15,23 @@
     "version": "0.1.0",
     "permissions": [],
     "windowConfig": {}
+  },
+  {
+    "type": "module",
+    "id": "localServer",
+    "name": "颜色转换",
+    "main": "/plugins/local-server",
+    "keywords": [
+      "server",
+      "shared",
+      "file",
+      "文件共享",
+      "共享",
+      "本地服务"
+    ],
+    "description": "提供一个本地服务，可以用于局域网传文件",
+    "version": "0.1.0",
+    "permissions": [],
+    "windowConfig": {}
   }
 ]
