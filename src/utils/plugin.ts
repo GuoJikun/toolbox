@@ -45,16 +45,16 @@ export const execScriptPlugin = async (env: ScriptEnv, path: string, args: strin
     let fn = ''
     switch (env) {
         case 'node':
-            fn = 'run_node_script'
+            fn = 'run_node'
             break
         case 'php':
-            fn = 'run_php_script'
+            fn = 'run_php'
             break
         case 'python':
-            fn = 'run_python_script'
+            fn = 'run_python'
             break
         default:
-            fn = 'run_node_script'
+            fn = 'run_node'
             break
     }
 
@@ -121,6 +121,5 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
  * @returns
  */
 export const getPluginOfPrefix = (prefix: string, pluginList: Array<PluginConfig> = []) => {
-    return pluginList.find((plugin) => 'prefix' in plugin ? plugin?.prefix === prefix : null)
+    return pluginList.find((plugin) => ('prefix' in plugin ? plugin?.prefix === prefix : null))
 }
-
