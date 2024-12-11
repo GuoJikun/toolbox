@@ -140,7 +140,7 @@ pub fn run() {
             screenshot_desktop,
             preview_file,
             local_shared_server,
-            pkg::list_installed_software,
+            pkg::installed_list,
             pkg::upgrade_software,
             pkg::install_software,
             pkg::check_updates,

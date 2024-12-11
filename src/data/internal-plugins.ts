@@ -17,11 +17,26 @@ export const internalPlugins: PluginConfig[] = [
         id: 'localServer',
         name: '本地服务',
         main: '/plugins/local-server',
-        keywords: ['server', 'shared', 'file', '文件共享', '共享', '本地服务'],
+        keywords: ['server', 'shared', 'file', '文件共享', '共享', '本地服务', 'local'],
         description: '提供一个本地服务，可以用于局域网传文件',
         version: '0.1.0',
         permissions: [],
         windowConfig: {}
+    },
+    {
+        type: 'module',
+        id: 'pkgManager',
+        name: '软件管理',
+        main: '/plugins/pkg-manager',
+        keywords: ['软件', '升级', '安装', 'pkg', 'upgrade', 'update', 'install', '软件管理'],
+        description: '使用 Winget 管理本机软件',
+        version: '0.1.0',
+        permissions: [],
+        windowConfig: {
+            width: 1000,
+            height: 660,
+            resizable: true
+        }
     }
 ]
 

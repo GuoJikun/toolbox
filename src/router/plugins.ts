@@ -11,6 +11,11 @@ export const plugins = {
         {
             path: '/plugins/local-server',
             component: () => import('@/views/plugins/local-server.vue')
+        },
+        {
+            name: 'pkgManager',
+            path: '/plugins/pkg-manager',
+            component: () => import('@/views/plugins/pkg-manager.vue')
         }
     ]
 }
