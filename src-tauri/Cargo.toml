@@ -38,6 +38,9 @@ local-ip-address = "0.6.3"
 warp = "0.3.7"
 tokio = "1.42.0"
 tauri-plugin-log = "2"
+webp = "0.3.0"
+log = "0.4.22"
+uuid = "1.11.0"
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52.0"

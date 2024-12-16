@@ -9,6 +9,7 @@ pub mod config;
 pub mod local_server;
 pub mod preview;
 pub mod shortcut;
+pub mod event;
 
 // 获取应用版本号的函数
 #[allow(dead_code)]

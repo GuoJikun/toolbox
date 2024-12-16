@@ -75,3 +75,8 @@ export const runSoftware = async (path: string) => {
     const output = await invoke('run_external_program', { executablePath: path, args: [] })
     console.log(output)
 }
+
+/**获取 uuid */
+export const uuid = async () => {
+    await invoke('get_uuid')
+}

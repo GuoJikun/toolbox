@@ -7,6 +7,7 @@ use std::fs::OpenOptions;
 pub mod pkg;
 pub mod dylib;
 pub mod scripts;
+pub mod webp;
 
 // 执行外部程序
 #[TCMD]
@@ -19,7 +20,7 @@ pub fn run_external_program(executable_path: String, args: Vec<String>) -> Resul
     {
         Ok(String::from("命令执行成功"))
     } else {
-        return Err(String::from("命令执行失败"));
+        Err(String::from("命令执行失败"))
     }
 }
 
@@ -36,7 +37,7 @@ use utils::local_server;
 pub fn get_installed_apps() -> Vec<App> {
     let result = Installed::new();
     let apps = result.apps;
-    return apps;
+    apps
 }
 
 // 获取屏幕截图
@@ -44,7 +45,7 @@ pub fn get_installed_apps() -> Vec<App> {
 pub fn screenshot_desktop(app: AppHandle) -> Result<String, String> {
     utils::print_current_time();
     let tmp = Screenshot::new().map_err(|e| e.to_string());
-    let result = tmp.unwrap();
+    let result = tmp?;
 
     let file_path = app
         .path()
@@ -86,4 +87,9 @@ pub fn local_shared_server(state: State<'_, local_server::ServerState>) -> Resul
     // }
     // local_server::start_file_server(state, path)
     Ok("".to_string())
+}
+
+#[TCMD]
+pub fn get_uuid() -> String {
+    uuid::Uuid::new_v4().to_string()
 }

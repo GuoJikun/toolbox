@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
 import { Webview, type WebviewOptions } from '@tauri-apps/api/webview'
 import { join, resourceDir } from '@tauri-apps/api/path'
-import { getWindow } from './window'
+import { getWebviewWindow, createWebviewWindow } from './window'
 
 /**
  * 获取插件根目录
@@ -73,45 +73,21 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
     // await invoke('add_acl')
     // @ts-ignore
     const { windowConfig = {}, id } = pluginConfig
-    const windowLabel = `toolbox-plugin-${id}-window`
-    let currentWindow = await getWindow(windowLabel)
-    if (!currentWindow) {
-        currentWindow = new Window(windowLabel, {
+    const windowLabel = `toolbox-plugin-${id}`
+    let currentWindow = await getWebviewWindow(windowLabel)
+    if (currentWindow) {
+        await currentWindow.show()
+    }else{
+        const conf = {
+            url: url,
             title: pluginConfig.name,
             center: !windowConfig.fullscreen,
             width: 1000,
             height: 600,
             ...windowConfig
-        })
+        }
+        await createWebviewWindow(windowLabel, conf);
     }
-
-    const windowOuterSize = await currentWindow.outerSize()
-    const windowInnerSize = await currentWindow.innerSize()
-    console.log('execModulePlugin window', windowOuterSize, windowInnerSize)
-    await currentWindow.listen('tauri://window-created', () => {
-        console.log('tauri://window-created')
-    })
-    const webviewLabel = `toolbox-plugin-${id}-webview`
-    const webviewOption: WebviewOptions = {
-        url: url,
-        width: windowConfig.fullscreen ? windowOuterSize.width : windowInnerSize.width,
-        height: windowConfig.fullscreen ? windowOuterSize.height : windowInnerSize.height,
-        x: 0,
-        y: 0
-    }
-    const webview = new Webview(currentWindow, webviewLabel, webviewOption)
-
-    await webview.listen('tauri://webview-created', () => {
-        console.log('webview-created')
-    })
-    await webview.once('tauri://error', function (e) {
-        // an error happened creating the webview
-        console.log('error', e)
-    })
-
-    console.log('execModulePlugin webview', webview)
-
-    await currentWindow.show()
 }
 
 /**

@@ -13,7 +13,7 @@ use utils::{
 };
 
 mod cmds;
-use crate::cmds::{pkg, dylib, scripts, run_external_program, get_installed_apps, local_shared_server, preview_file, screenshot_desktop};
+use crate::cmds::{pkg, dylib, scripts, run_external_program, get_installed_apps, local_shared_server, preview_file, screenshot_desktop, get_uuid, webp};
 
 mod platform;
 
@@ -144,6 +144,8 @@ pub fn run() {
             pkg::upgrade_software,
             pkg::install_software,
             pkg::check_updates,
+            get_uuid,
+            webp::convert_image,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
