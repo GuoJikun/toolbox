@@ -21,7 +21,7 @@ export const createWebviewWindow = async (label: WindowLabel, config = {}) => {
     })
 
     await webview.once('tauri://error', async (e) => {
-        await error(`webviewWindow label 创建失败，错误信息：${e.toString()}`)
+        await error(`webviewWindow label 创建失败，错误信息：${JSON.stringify(e)}`)
     })
 }
 

@@ -20,7 +20,8 @@
         "minWidth": 600,
         "minHeight": 400,
         "center": true,
-        "decorations": false
+        "decorations": false,
+        "visible": false
       },
       {
         "title": "search",
@@ -34,7 +35,8 @@
         "focus": true,
         "decorations": false,
         "transparent": false,
-        "shadow": true
+        "shadow": true,
+        "center": true
       }
     ],
     "security": {
@@ -86,7 +88,7 @@
     "resources": {
       "resources/plugins/": "plugins/",
       "resources/capabilities/": "capabilities/",
-      "resources/config/caddy.json": "config/caddy.json"
+      "resources/config/": "config/"
     },
     "externalBin": [
       "binaries/caddy/caddy"

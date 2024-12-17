@@ -1,6 +1,7 @@
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::GetClassNameW;
 
+#[allow(unused)]
 pub fn get_window_class_name(hwnd: HWND) -> String {
     let mut buffer = [0u16; 256];
     let len = unsafe { GetClassNameW(hwnd, &mut buffer) };

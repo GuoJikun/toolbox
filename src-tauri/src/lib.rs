@@ -18,15 +18,6 @@ use crate::cmds::{pkg, dylib, scripts, run_external_program, get_installed_apps,
 mod platform;
 
 #[command]
-fn add_acl() {
-    let capability = tauri::ipc::CapabilityBuilder::new("plugin-b");
-    capability
-        .window("toolbox-plugin-window-plugin-b")
-        .webview("toolbox-plugin-webview-plugin-b")
-        .permission("window:allow-is-fullscreen");
-}
-
-#[command]
 fn add_capabilities(window: String, webview: String, permissions: Vec<String>) {
     let mut capability = tauri::ipc::CapabilityBuilder::new(window);
     if webview != "" {
@@ -99,7 +90,7 @@ pub fn run() {
             // 创建托盘
             tray::create_tray(app)?;
             // 生成插件的权限文件
-            capability::generate(app)?;
+            capability::generate(app);
             // 添加插件的权限
             capability::add(app);
             // cli
@@ -134,7 +125,6 @@ pub fn run() {
             scripts::run_php,
             scripts::run_python,
             dylib::dynamic_command,
-            add_acl,
             add_capabilities,
             get_installed_apps,
             screenshot_desktop,
@@ -145,7 +135,7 @@ pub fn run() {
             pkg::install_software,
             pkg::check_updates,
             get_uuid,
-            webp::convert_image,
+            webp::convert_images,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -23,10 +23,6 @@
     "core:window:allow-close",
     "core:window:allow-create",
     "core:window:allow-center",
-    "core:webview:allow-create-webview",
-    "shell:default",
-    "global-shortcut:default",
-    "dialog:default",
-    "fs:default"
+    "core:webview:allow-create-webview"
   ]
 }

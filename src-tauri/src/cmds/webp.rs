@@ -9,29 +9,31 @@ use tauri::{AppHandle, path::BaseDirectory, Manager, Emitter, EventTarget};
 
 #[derive(Clone, Serialize)]
 pub enum ConvertImagesPayloadStatus {
-    Success(String),
-    Error(String),
+    Success,
+    Error,
 }
 
 #[derive(Clone, Serialize)]
 pub struct ConvertImagesPayload {
     status: ConvertImagesPayloadStatus,
     message: String,
-    path: String
+    path: String,
+    dest: String,
 }
 #[tauri::command]
-pub fn convert_images(app: &AppHandle,paths: Vec<String>) -> Result<(), String> {
-    let label = "plugin_convert_images".to_string();
+pub fn convert_images(app: AppHandle,paths: Vec<String>) -> Result<(), String> {
+    let label = "toolbox-plugin-convertToWebp".to_string();
     let event_name = "plugin_convert_images_notify";
     for path_str in paths {
         let input_path = PathBuf::from(&path_str);
-
+        let _file_name = input_path.file_name().unwrap().to_string_lossy().to_string();
         // 安全性检查：验证文件是否存在且可读
         if !input_path.is_file() {
             app.emit_to(EventTarget::WebviewWindow { label: label.clone()}, event_name, ConvertImagesPayload {
-                status: ConvertImagesPayloadStatus::Error("Error".into()),
+                status: ConvertImagesPayloadStatus::Error,
                 path: path_str,
-                message: "文件不存在或无法读取".into()
+                message: "文件不存在或无法读取".into(),
+                dest: "".into()
             }).unwrap();
             continue
         }
@@ -40,9 +42,10 @@ pub fn convert_images(app: &AppHandle,paths: Vec<String>) -> Result<(), String> 
         let canonical_input = input_path.canonicalize();
         if canonical_input.is_err() {
             app.emit_to(EventTarget::WebviewWindow { label: label.clone()}, event_name, ConvertImagesPayload {
-                status: ConvertImagesPayloadStatus::Error("Error".into()),
+                status: ConvertImagesPayloadStatus::Error,
                 path: path_str,
-                message: "文件路径无效".into()
+                message: "文件路径无效".into(),
+                dest: "".into()
             }).unwrap();
             continue
         }
@@ -51,9 +54,10 @@ pub fn convert_images(app: &AppHandle,paths: Vec<String>) -> Result<(), String> 
         let output_path = app.path().resolve(format!("{}.webp", uuid.to_string()), BaseDirectory::Temp);
         if output_path.is_err() {
             app.emit_to(EventTarget::WebviewWindow { label: label.clone()}, event_name, ConvertImagesPayload {
-                status: ConvertImagesPayloadStatus::Error("Error".into()),
+                status: ConvertImagesPayloadStatus::Error,
                 path: path_str,
-                message: "无法解析暂存文件路径".into()
+                message: "无法解析暂存文件路径".into(),
+                dest: "".into()
             }).unwrap();
             continue
         }
@@ -62,17 +66,19 @@ pub fn convert_images(app: &AppHandle,paths: Vec<String>) -> Result<(), String> 
         let result = convert_to_webp(&canonical_input.unwrap(), &mut output_path);
         if result.is_err() {
             app.emit_to(EventTarget::WebviewWindow { label: label.clone()}, event_name, ConvertImagesPayload {
-                status: ConvertImagesPayloadStatus::Error("Error".into()),
+                status: ConvertImagesPayloadStatus::Error,
                 path: path_str,
-                message: result.err().unwrap().to_string()
+                message: result.err().unwrap().to_string(),
+                dest: "".into()
             }).unwrap();
             continue
         }
 
         app.emit_to(EventTarget::WebviewWindow { label: label.clone()}, event_name, ConvertImagesPayload {
-            status: ConvertImagesPayloadStatus::Success("success".into()),
+            status: ConvertImagesPayloadStatus::Success,
             path: path_str,
-            message: "success".into()
+            message: "格式转化成功".into(),
+            dest: output_path.to_string_lossy().into(),
         }).unwrap();
     }
     Ok(())

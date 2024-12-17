@@ -37,6 +37,7 @@ pub fn bind(app: AppHandle) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+#[allow(unused)]
 pub fn unbind(app: AppHandle) -> Result<(), Box<dyn Error>> {
     let alt_n_space = Shortcut::new(Some(Modifiers::ALT), Code::Space);
     app.global_shortcut().unregister(alt_n_space)?;

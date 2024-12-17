@@ -4,13 +4,16 @@ use std::sync::Mutex;
 use tauri::State;
 
 // 定义共享状态，用于控制服务器的启动和停止
+#[allow(unused)]
 #[derive(Default, Debug)]
 pub struct ServerStateInner {
     pub is_running: bool,
 }
 
+#[allow(unused)]
 pub type ServerState = Mutex<ServerStateInner>;
 
+#[allow(unused)]
 pub fn get_local_ip() -> String {
     match local_ip_address::local_ip() {
         Ok(local_ip_address) => local_ip_address.to_string(),
@@ -23,6 +26,7 @@ fn has_available_port(ip: &str, port: u16) -> bool {
     TcpListener::bind(addr).is_ok()
 }
 
+#[allow(unused)]
 pub fn start_file_server(
     state: State<'_, ServerState>,
     shared_dir: &str,
@@ -54,6 +58,7 @@ pub fn start_file_server(
     }
 }
 
+#[allow(unused)]
 pub fn stop_file_server(state: State<'_, ServerState>) -> Result<String, String> {
     let mut state = state.lock().unwrap();
 

@@ -37,6 +37,17 @@ export const internalPlugins: PluginConfig[] = [
             height: 660,
             resizable: true
         }
+    },
+    {
+        type: 'module',
+        id: 'convertToWebp',
+        name: '图片转Webp',
+        main: '/plugins/convert-image-to-webp',
+        keywords: ['图片', 'image', 'webp', 'convert', '格式', 'format', 'jpg', 'png'],
+        description: '将图片转为 webp 格式',
+        version: '0.1.0',
+        permissions: ["log:allow-log", "fs:write-all", "fs:allow-copy-file"],
+        windowConfig: {}
     }
 ]
 

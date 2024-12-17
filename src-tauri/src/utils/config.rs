@@ -5,7 +5,7 @@ use std::{fs, io, path::Path};
 // 读取 JSON 配置文件，返回一个 json::Value
 #[derive(Debug, Deserialize)]
 pub struct Config {
-    config: Value,
+    pub(crate) config: Value,
 }
 impl Default for Config {
     fn default() -> Self {
