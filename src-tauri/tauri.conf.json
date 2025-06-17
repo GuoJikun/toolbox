@@ -90,11 +90,10 @@
       "resources/capabilities/": "capabilities/",
       "resources/config/": "config/"
     },
-    "externalBin": [
-      "binaries/caddy/caddy"
-    ],
     "active": true,
-    "targets": "all",
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
