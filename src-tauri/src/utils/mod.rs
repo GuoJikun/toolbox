@@ -1,7 +1,6 @@
-use std::{env, fs, io, path::Path, process::Command as StdCommand};
-use tauri::{path::BaseDirectory, AppHandle, Manager};
+use std::{ fs, io, path::Path};
+use tauri::{AppHandle};
 
-use tauri_plugin_shell::{process::Command, ShellExt};
 use walkdir::WalkDir;
 
 pub mod capability;
@@ -10,6 +9,7 @@ pub mod local_server;
 pub mod preview;
 pub mod shortcut;
 pub mod event;
+pub mod web_server;
 
 // 获取应用版本号的函数
 #[allow(dead_code)]
@@ -20,114 +20,6 @@ pub fn get_app_version(app: AppHandle) -> String {
     let version = conf.version.clone();
 
     version.to_string()
-}
-
-#[allow(dead_code)]
-pub fn init_local_http_server(app: AppHandle) -> u32 {
-    let binding = app
-        .path()
-        .resolve("plugins", BaseDirectory::Resource)
-        .unwrap();
-
-    let static_path = binding.to_str().unwrap();
-    let shell = app.shell();
-    let caddy: Command = shell.sidecar("caddy").unwrap();
-    let args = vec![
-        "file-server",
-        "--listen",
-        "localhost:6543",
-        "--root",
-        static_path,
-    ];
-    let _ = match caddy.args(args).spawn() {
-        Ok((_rx, child)) => {
-            let pid = child.pid();
-            return pid;
-        }
-        Err(_) => 0,
-    };
-    0
-}
-#[allow(dead_code)]
-pub fn kill_local_http_server(app: AppHandle, pid: u32) {
-    let shell = app.shell();
-    let os = env::consts::OS;
-
-    match os {
-        "windows" => {
-            shell
-                .command("taskkill")
-                .arg("/F")
-                .arg("/PID")
-                .arg(pid.to_string())
-                .spawn()
-                .unwrap();
-        }
-        "linux" | "macos" => {
-            shell
-                .command("kill")
-                .arg("-9")
-                .arg(pid.to_string())
-                .spawn()
-                .unwrap();
-        }
-        _ => {
-            panic!("Unsupported operating system");
-        }
-    }
-}
-#[allow(dead_code)]
-pub fn kill_server_by_name(process_name: &str) {
-    let os = env::consts::OS;
-
-    match os {
-        "windows" => {
-            // 获取 PID
-            let output = StdCommand::new("tasklist")
-                .arg("/FI")
-                .arg(format!("IMAGENAME eq {}", process_name))
-                .output()
-                .expect("Failed to execute command");
-
-            let output_str = String::from_utf8_lossy(&output.stdout);
-            for line in output_str.lines() {
-                if line.contains(process_name) {
-                    let parts: Vec<&str> = line.split_whitespace().collect();
-                    if let Some(pid) = parts.get(1) {
-                        let pid: u32 = pid.parse().expect("Failed to parse PID");
-                        // 杀死进程
-                        StdCommand::new("taskkill")
-                            .arg("/F")
-                            .arg("/PID")
-                            .arg(pid.to_string())
-                            .spawn()
-                            .expect("Failed to execute command");
-                    }
-                }
-            }
-        }
-        "linux" | "macos" => {
-            // 获取 PID
-            let output = StdCommand::new("pgrep")
-                .arg(process_name)
-                .output()
-                .expect("Failed to execute command");
-
-            let output_str = String::from_utf8_lossy(&output.stdout);
-            for line in output_str.lines() {
-                let pid: u32 = line.parse().expect("Failed to parse PID");
-                // 杀死进程
-                StdCommand::new("kill")
-                    .arg("-9")
-                    .arg(pid.to_string())
-                    .spawn()
-                    .expect("Failed to execute command");
-            }
-        }
-        _ => {
-            panic!("Unsupported operating system");
-        }
-    }
 }
 
 #[allow(dead_code)]

@@ -34,6 +34,18 @@ plguin-A
 - 插件设置
   - 插件目录
 
+## TODOList to plugins
+
+- [x] 计算器
+- [x] 截图
+- [x] json 美化
+- [x] json 对比
+- [x] 颜色格式转换
+- [x] 本地服务
+- [x] 软件管理
+- [x] 图片转 Webp
+- [ ] 便签
+
 ## 参与开发
 
 ```bash

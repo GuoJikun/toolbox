@@ -132,13 +132,13 @@ const resultClick = async (item: any) => {
         const pluginConfig = item.raw
         const { main, id } = pluginConfig
 
-        let indexPath = `http://localhost:6543/${id}/${main}`
-        if(internalPlugins.some(c => c.id === id)){
+        let indexPath = `http://localhost:54321/${id}/${main}`
+        if (internalPlugins.some((c) => c.id === id)) {
             indexPath = pluginConfig.main
         }
-        if (id === 'screenshot') {
-            indexPath = pluginConfig.devMain
-        }
+        // if (id === 'screenshot') {
+        //     indexPath = pluginConfig.devMain
+        // }
         console.log('indexPath', indexPath)
         await execModulePlugin(indexPath, pluginConfig)
     } else if (item.source === 'installedPkg') {

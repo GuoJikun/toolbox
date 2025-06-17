@@ -41,6 +41,9 @@ tauri-plugin-log = "2"
 webp = "0.3.0"
 log = "0.4.22"
 uuid = "1.11.0"
+axum = "0.8.4"
+tower-http = { version = "0.6.6", features = ["fs"] }
+rocket = "0.5.1"
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52.0"

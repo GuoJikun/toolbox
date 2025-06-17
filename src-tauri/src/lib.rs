@@ -10,6 +10,7 @@ use utils::{
     capability,
     local_server::{ServerState, ServerStateInner},
     shortcut,
+    web_server
 };
 
 mod cmds;
@@ -33,7 +34,6 @@ mod tray;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    utils::kill_server_by_name("caddy");
     tauri::Builder::default()
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
@@ -47,6 +47,12 @@ pub fn run() {
         .plugin(tauri_plugin_cli::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
+            // 初始化插件 HTTP 服务器 (spawn async task)
+            let handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                let _ = web_server::init(handle).await;
+            });
+
             app.manage(Mutex::new(ServerStateInner::default()));
             println!(
                 "is_running: {:?}",
@@ -71,20 +77,7 @@ pub fn run() {
                 }
             };
             println!("store version: {}", cur_version);
-            let _ = match store.get("local_http_server_pid".to_string()) {
-                Some(tmp) => {
-                    let pid: u32 = tmp.as_u64().unwrap() as u32;
-                    utils::kill_local_http_server(app.handle().clone(), pid);
-                    // 初始化本地 HTTP 服务
-                    let pid = utils::init_local_http_server(app.handle().clone());
-                    store.set("local_http_server_pid".to_string(), json!(pid));
-                }
-                None => {
-                    let pid = utils::init_local_http_server(app.handle().clone());
-                    store.set("local_http_server_pid".to_string(), json!(pid));
-                }
-            };
-
+            
             let _ = store.save()?;
 
             // 创建托盘
@@ -115,7 +108,6 @@ pub fn run() {
                 if label == "preview" {
                     let _ = window.close();
                 }
-                utils::kill_server_by_name("caddy");
             }
             _ => {}
         })

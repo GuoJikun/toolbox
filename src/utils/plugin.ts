@@ -77,7 +77,7 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
     let currentWindow = await getWebviewWindow(windowLabel)
     if (currentWindow) {
         await currentWindow.show()
-    }else{
+    } else {
         const conf = {
             url: url,
             title: pluginConfig.name,
@@ -86,7 +86,7 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
             height: 600,
             ...windowConfig
         }
-        await createWebviewWindow(windowLabel, conf);
+        await createWebviewWindow(windowLabel, conf)
     }
 }
 
@@ -98,4 +98,11 @@ export const execModulePlugin = async (url: string, pluginConfig: PluginConfig) 
  */
 export const getPluginOfPrefix = (prefix: string, pluginList: Array<PluginConfig> = []) => {
     return pluginList.find((plugin) => ('prefix' in plugin ? plugin?.prefix === prefix : null))
+}
+
+export const addPluginRoutes = async (pluginList: Array<PluginConfig> = []) => {
+    const pluginRoutes = pluginList.map((c) => {
+        return {}
+    })
+    return pluginList
 }
