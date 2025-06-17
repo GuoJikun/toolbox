@@ -1,6 +1,3 @@
 [submodule "plugins"]
 	path = plugins
 	url = https://github.com/GuoJikun/toolbox-plugins.git
-[submodule "binaries/caddy"]
-	path = binaries/caddy
-	url = https://github.com/GuoJikun/toolbox-caddy.git
